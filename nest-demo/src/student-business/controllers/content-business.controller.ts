@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AllowNoPermission } from '../../decorators/permission.decorator';
+import { RequireBusinessPermission } from '../../decorators/require_business_permission.decorator';
 import { AssignStudentBusinessUsersDto } from '../dto/assign-student-business-users.dto';
 import { CreateStudentBusinessItemDto } from '../dto/create-student-business-item.dto';
 import { QueryStudentBusinessItemDto } from '../dto/query-student-business-item.dto';
@@ -18,20 +18,21 @@ import { QueryStudentBusinessUserPickerDto } from '../dto/query-student-business
 import { UpdateStudentBusinessItemDto } from '../dto/update-student-business-item.dto';
 import { ContentBusinessService } from '../services/content-business.service';
 
-@ApiTags('留学生管理系统-内容发布业务')
-@AllowNoPermission()
+@ApiTags('Student Business - Content')
 @Controller('student-business/content')
 export class ContentBusinessController {
   constructor(private readonly contentBusinessService: ContentBusinessService) {}
 
   @Post()
-  @ApiOperation({ summary: '新增内容发布业务数据' })
+  @RequireBusinessPermission({ action: 'add', categoryFrom: 'body' })
+  @ApiOperation({ summary: 'Create content business item' })
   create(@Body() body: CreateStudentBusinessItemDto) {
     return this.contentBusinessService.create(body);
   }
 
   @Get()
-  @ApiOperation({ summary: '分页查询内容发布业务数据' })
+  @RequireBusinessPermission({ action: 'list', categoryFrom: 'query' })
+  @ApiOperation({ summary: 'List content business items' })
   findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -41,13 +42,15 @@ export class ContentBusinessController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '查询内容发布业务详情' })
+  @RequireBusinessPermission({ action: 'view', categoryFrom: 'query' })
+  @ApiOperation({ summary: 'Get content business item detail' })
   findOne(@Param('id') id: string, @Query('category') category: string) {
     return this.contentBusinessService.findOne(+id, category);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: '更新内容发布业务数据' })
+  @RequireBusinessPermission({ action: 'edit', categoryFrom: 'body' })
+  @ApiOperation({ summary: 'Update content business item' })
   update(
     @Param('id') id: string,
     @Body() body: UpdateStudentBusinessItemDto,
@@ -56,7 +59,8 @@ export class ContentBusinessController {
   }
 
   @Put(':id/status')
-  @ApiOperation({ summary: '更新内容发布业务状态' })
+  @RequireBusinessPermission({ action: 'status', categoryFrom: 'body' })
+  @ApiOperation({ summary: 'Update content business status' })
   updateStatus(
     @Param('id') id: string,
     @Body('category') category: string,
@@ -66,7 +70,12 @@ export class ContentBusinessController {
   }
 
   @Get('service-platform/:merchantId/assignable-users')
-  @ApiOperation({ summary: '查询可分配到留学服务平台的微信用户列表' })
+  @RequireBusinessPermission({
+    action: 'assign',
+    categoryFrom: 'fixed',
+    category: 'service-platform',
+  })
+  @ApiOperation({ summary: 'List assignable service-platform users' })
   getAssignableMerchantUsers(
     @Param('merchantId') merchantId: string,
     @Query() query: QueryStudentBusinessUserPickerDto,
@@ -78,7 +87,12 @@ export class ContentBusinessController {
   }
 
   @Put('service-platform/:merchantId/assign-users')
-  @ApiOperation({ summary: '分配微信用户到留学服务平台' })
+  @RequireBusinessPermission({
+    action: 'assign',
+    categoryFrom: 'fixed',
+    category: 'service-platform',
+  })
+  @ApiOperation({ summary: 'Assign users to service-platform item' })
   assignMerchantUsers(
     @Param('merchantId') merchantId: string,
     @Body() body: AssignStudentBusinessUsersDto,
@@ -90,19 +104,30 @@ export class ContentBusinessController {
   }
 
   @Put('service-platform/:merchantId/assign-all')
-  @ApiOperation({ summary: '一键分配全部微信用户到留学服务平台' })
+  @RequireBusinessPermission({
+    action: 'assign',
+    categoryFrom: 'fixed',
+    category: 'service-platform',
+  })
+  @ApiOperation({ summary: 'Assign all users to service-platform item' })
   assignAllMerchantUsers(@Param('merchantId') merchantId: string) {
     return this.contentBusinessService.assignAllMerchantUsers(+merchantId);
   }
 
   @Put('service-platform/:merchantId/revoke-all')
-  @ApiOperation({ summary: '撤销留学服务平台全部已分配用户' })
+  @RequireBusinessPermission({
+    action: 'revoke',
+    categoryFrom: 'fixed',
+    category: 'service-platform',
+  })
+  @ApiOperation({ summary: 'Revoke all users from service-platform item' })
   revokeAllMerchantUsers(@Param('merchantId') merchantId: string) {
     return this.contentBusinessService.revokeAllMerchantUsers(+merchantId);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: '删除内容发布业务数据' })
+  @RequireBusinessPermission({ action: 'delete', categoryFrom: 'query' })
+  @ApiOperation({ summary: 'Delete content business item' })
   remove(@Param('id') id: string, @Query('category') category: string) {
     return this.contentBusinessService.remove(+id, category);
   }

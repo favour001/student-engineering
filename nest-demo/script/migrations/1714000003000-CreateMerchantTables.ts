@@ -3,6 +3,9 @@ import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 export class CreateMerchantTables1714000003000
   implements MigrationInterface
 {
+  name = 'CreateMerchantTables';
+  timestamp = 1714000003000;
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({

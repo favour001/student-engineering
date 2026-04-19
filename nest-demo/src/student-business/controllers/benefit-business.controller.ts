@@ -10,26 +10,27 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AllowNoPermission } from '../../decorators/permission.decorator';
+import { RequireBusinessPermission } from '../../decorators/require_business_permission.decorator';
 import { CreateStudentBusinessItemDto } from '../dto/create-student-business-item.dto';
 import { QueryStudentBusinessItemDto } from '../dto/query-student-business-item.dto';
 import { UpdateStudentBusinessItemDto } from '../dto/update-student-business-item.dto';
 import { BenefitBusinessService } from '../services/benefit-business.service';
 
-@ApiTags('留学生管理系统-权益卡券业务')
-@AllowNoPermission()
+@ApiTags('Student Business - Benefit')
 @Controller('student-business/benefit')
 export class BenefitBusinessController {
   constructor(private readonly benefitBusinessService: BenefitBusinessService) {}
 
   @Post()
-  @ApiOperation({ summary: '新增权益卡券业务数据' })
+  @RequireBusinessPermission({ action: 'add', categoryFrom: 'body' })
+  @ApiOperation({ summary: 'Create benefit business item' })
   create(@Body() body: CreateStudentBusinessItemDto) {
     return this.benefitBusinessService.create(body);
   }
 
   @Get()
-  @ApiOperation({ summary: '分页查询权益卡券业务数据' })
+  @RequireBusinessPermission({ action: 'list', categoryFrom: 'query' })
+  @ApiOperation({ summary: 'List benefit business items' })
   findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -39,13 +40,15 @@ export class BenefitBusinessController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '查询权益卡券业务详情' })
+  @RequireBusinessPermission({ action: 'view', categoryFrom: 'query' })
+  @ApiOperation({ summary: 'Get benefit business item detail' })
   findOne(@Param('id') id: string, @Query('category') category: string) {
     return this.benefitBusinessService.findOne(+id, category);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: '更新权益卡券业务数据' })
+  @RequireBusinessPermission({ action: 'edit', categoryFrom: 'body' })
+  @ApiOperation({ summary: 'Update benefit business item' })
   update(
     @Param('id') id: string,
     @Body() body: UpdateStudentBusinessItemDto,
@@ -54,7 +57,8 @@ export class BenefitBusinessController {
   }
 
   @Put(':id/status')
-  @ApiOperation({ summary: '更新权益卡券业务状态' })
+  @RequireBusinessPermission({ action: 'status', categoryFrom: 'body' })
+  @ApiOperation({ summary: 'Update benefit business status' })
   updateStatus(
     @Param('id') id: string,
     @Body('category') category: string,
@@ -64,7 +68,8 @@ export class BenefitBusinessController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: '删除权益卡券业务数据' })
+  @RequireBusinessPermission({ action: 'delete', categoryFrom: 'query' })
+  @ApiOperation({ summary: 'Delete benefit business item' })
   remove(@Param('id') id: string, @Query('category') category: string) {
     return this.benefitBusinessService.remove(+id, category);
   }

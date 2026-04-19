@@ -100,9 +100,21 @@ class MigrationRunner {
     const queryRunner = this.dataSource.createQueryRunner();
     try {
       const results = await queryRunner.query(
-        'SELECT * FROM migrations ORDER BY timestamp ASC'
+        `
+          SELECT
+            MIN(id) AS id,
+            timestamp,
+            name,
+            MAX(executed_at) AS executed_at
+          FROM migrations
+          GROUP BY timestamp, name
+          ORDER BY timestamp ASC
+        `
       );
-      return results;
+      return results.map((record: MigrationRecord) => ({
+        ...record,
+        timestamp: Number(record.timestamp),
+      }));
     } finally {
       await queryRunner.release();
     }

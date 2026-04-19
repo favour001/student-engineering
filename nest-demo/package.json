@@ -22,7 +22,10 @@
     "seed:clean": "ts-node script/seed.ts --clean --dry-run",
     "migration:run": "ts-node script/migration.ts run",
     "migration:revert": "ts-node script/migration.ts revert",
-    "migration:show": "ts-node script/migration.ts show"
+    "migration:show": "ts-node script/migration.ts show",
+    "permissions:sync": "ts-node script/sync-student-business-permission-menus.ts",
+    "data:sync:dry": "ts-node script/sync-liuxie-business-data.ts",
+    "data:sync": "ts-node script/sync-liuxie-business-data.ts --execute"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

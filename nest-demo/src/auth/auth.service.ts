@@ -61,7 +61,7 @@ export class AuthService {
     const payload = { account: user.account, sub: user.id };
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRE_TIME')
+      expiresIn: this.configService.get<string>('JWT_EXPIRE_TIME') as any,
     });
   }
 
@@ -69,7 +69,7 @@ export class AuthService {
     const payload = { sub: user.id, type: 'refresh' };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET') || this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE_TIME')
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE_TIME') as any,
     });
     const expiresTime = new Date();
     expiresTime.setDate(expiresTime.getDate() + 7);

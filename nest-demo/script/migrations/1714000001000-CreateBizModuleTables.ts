@@ -1,6 +1,9 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreateBizModuleTables1714000001000 implements MigrationInterface {
+  name = 'CreateBizModuleTables';
+  timestamp = 1714000001000;
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
