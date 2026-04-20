@@ -100,9 +100,23 @@ class MigrationRunner {
     const queryRunner = this.dataSource.createQueryRunner();
     try {
       const results = await queryRunner.query(
-        'SELECT * FROM migrations ORDER BY timestamp ASC'
+        `
+          SELECT
+            MIN(id) AS id,
+            timestamp,
+            name,
+            MIN(executed_at) AS executed_at
+          FROM migrations
+          GROUP BY timestamp, name
+          ORDER BY timestamp ASC
+        `
       );
-      return results;
+      return results.map((row: any) => ({
+        ...row,
+        id: Number(row.id),
+        timestamp: Number(row.timestamp),
+        executed_at: row.executed_at,
+      }));
     } finally {
       await queryRunner.release();
     }
@@ -114,17 +128,37 @@ class MigrationRunner {
       .filter(file => file.endsWith('.ts') || file.endsWith('.js'))
       .sort();
 
-    const migrations: Migration[] = [];
+    const migrations: Partial<Migration>[] = [];
 
     for (const file of files) {
       const filePath = path.join(migrationsDir, file);
       const migrationModule = require(filePath);
       const MigrationClass = Object.values(migrationModule)[0] as any;
-      const migration = new MigrationClass();
+      const migration = new MigrationClass() as Partial<Migration>;
+      const filenameMatch = file.match(/^(\d+)-(.+)\.(ts|js)$/);
+      const className = MigrationClass?.name ?? '';
+
+      const inferredTimestamp =
+        migration.timestamp ??
+        (filenameMatch ? Number(filenameMatch[1]) : Number((className.match(/(\d+)$/) ?? [])[1]));
+      const inferredName =
+        migration.name ??
+        className.replace(/\d+$/, '') ??
+        (filenameMatch ? filenameMatch[2] : className);
+
+      migration.timestamp = Number(inferredTimestamp);
+      migration.name = inferredName;
       migrations.push(migration);
     }
 
-    return migrations.sort((a, b) => a.timestamp - b.timestamp);
+    return migrations
+      .filter((migration): migration is Migration =>
+        Number.isFinite(migration.timestamp) &&
+        typeof migration.name === 'string' &&
+        typeof migration.up === 'function' &&
+        typeof migration.down === 'function'
+      )
+      .sort((a, b) => a.timestamp - b.timestamp);
   }
 
   private async runMigrations(): Promise<void> {
@@ -161,16 +195,32 @@ class MigrationRunner {
         this.logger.warn(`🎭 [预演] 将执行迁移: ${migration.name}`);
       } else {
         if (direction === 'up') {
+          const existing = await queryRunner.query(
+            'SELECT id FROM migrations WHERE timestamp = ? AND name = ? LIMIT 1',
+            [migration.timestamp, migration.name]
+          );
+          if (existing.length > 0) {
+            this.logger.warn(`⏭️ 跳过已记录迁移: ${migration.name}`);
+            await queryRunner.commitTransaction();
+            return;
+          }
+
           await migration.up(queryRunner);
           await queryRunner.query(
-            'INSERT INTO migrations (timestamp, name) VALUES (?, ?)',
-            [migration.timestamp, migration.name]
+            `
+              INSERT INTO migrations (timestamp, name)
+              SELECT ?, ?
+              WHERE NOT EXISTS (
+                SELECT 1 FROM migrations WHERE timestamp = ? AND name = ?
+              )
+            `,
+            [migration.timestamp, migration.name, migration.timestamp, migration.name]
           );
         } else {
           await migration.down(queryRunner);
           await queryRunner.query(
-            'DELETE FROM migrations WHERE timestamp = ?',
-            [migration.timestamp]
+            'DELETE FROM migrations WHERE timestamp = ? AND name = ?',
+            [migration.timestamp, migration.name]
           );
         }
       }
@@ -211,6 +261,10 @@ class MigrationRunner {
     const allMigrations = await this.loadMigrations();
     const executedMigrations = await this.getExecutedMigrations();
     const executedTimestamps = new Set(executedMigrations.map(m => m.timestamp));
+    const localExecutedCount = allMigrations.filter(m => executedTimestamps.has(m.timestamp)).length;
+    const extraExecutedCount = executedMigrations.filter(
+      executed => !allMigrations.some(local => local.timestamp === executed.timestamp)
+    ).length;
 
     this.logger.log('📋 迁移状态:');
     this.logger.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -225,8 +279,11 @@ class MigrationRunner {
 
     this.logger.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     this.logger.log(`总计: ${allMigrations.length} 个迁移`);
-    this.logger.log(`已执行: ${executedMigrations.length} 个`);
-    this.logger.log(`待执行: ${allMigrations.length - executedMigrations.length} 个`);
+    this.logger.log(`已执行: ${localExecutedCount} 个`);
+    this.logger.log(`待执行: ${allMigrations.length - localExecutedCount} 个`);
+    if (extraExecutedCount > 0) {
+      this.logger.warn(`⚠️ 数据库中还有 ${extraExecutedCount} 条本地缺失的历史迁移记录`);
+    }
   }
 }
 

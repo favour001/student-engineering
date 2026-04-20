@@ -3,10 +3,12 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import type { StringValue } from 'ms';
+import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { SysUserService } from '../sys-user/sys-user.service';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { parseDeviceInfo } from '../utils/deviceInfo';
+import { parseDeviceInfo } from '../common/http/device-info';
 
 @Injectable()
 export class AuthService {
@@ -61,15 +63,15 @@ export class AuthService {
     const payload = { account: user.account, sub: user.id };
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRE_TIME')
+      expiresIn: this.configService.get<string>('JWT_EXPIRE_TIME') as StringValue
     });
   }
 
   async generateRefreshToken(user: any, deviceInfo: string, ipAddress: string): Promise<string> {
-    const payload = { sub: user.id, type: 'refresh' };
+    const payload = { sub: user.id, type: 'refresh', jti: randomUUID() };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET') || this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE_TIME')
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE_TIME') as StringValue
     });
     const expiresTime = new Date();
     expiresTime.setDate(expiresTime.getDate() + 7);

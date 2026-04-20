@@ -5,7 +5,7 @@ import { CreateSysMenuDto } from './dto/create-sys-menu.dto';
 import { UpdateSysMenuDto } from './dto/update-sys-menu.dto';
 import { QuerySysMenuDto } from './dto/query-sys-menu.dto';
 import { SysMenu } from './entities/sys-menu.entity';
-import { FilterBuilder } from '../utils/filter-builder';
+import { FilterBuilder } from '../common/query/filter-builder';
 
 @Injectable()
 export class SysMenuService {

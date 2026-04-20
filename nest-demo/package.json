@@ -20,9 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node script/seed.ts",
     "seed:clean": "ts-node script/seed.ts --clean --dry-run",
-    "migration:run": "ts-node script/migration.ts run",
-    "migration:revert": "ts-node script/migration.ts revert",
-    "migration:show": "ts-node script/migration.ts show"
+    "migration:run": "ts-node --transpile-only script/migration.ts run",
+    "migration:revert": "ts-node --transpile-only script/migration.ts revert",
+    "migration:show": "ts-node --transpile-only script/migration.ts show"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

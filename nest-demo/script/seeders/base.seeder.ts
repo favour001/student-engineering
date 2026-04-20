@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { SeedOptions } from '../interfaces/seed-options.interface';
-import { StatsTracker } from '../utils/stats-tracker';
+import { StatsTracker } from '../support/stats-tracker';
 
 export abstract class BaseSeeder<T = any> {
   protected abstract readonly logger: Logger;

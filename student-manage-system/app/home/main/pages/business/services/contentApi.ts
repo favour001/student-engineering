@@ -51,6 +51,13 @@ export interface BusinessContentItem {
   email?: string | null
   nativePlace?: string | null
   birthday?: string | null
+  displayName?: string | null
+  jobTitle?: string | null
+  memberRank?: string | null
+  backgroundImage?: string | null
+  honorRemark?: string | null
+  companyRemark?: string | null
+  jobRemark?: string | null
 }
 
 export interface BusinessContentQueryParams {

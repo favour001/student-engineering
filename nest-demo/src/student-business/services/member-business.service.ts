@@ -12,8 +12,8 @@ import { QueryStudentBusinessUserPickerDto } from '../dto/query-student-business
 import { UpdateStudentBusinessItemDto } from '../dto/update-student-business-item.dto';
 import { StudentBusinessDomainService } from './student-business-domain.service';
 import { LxCard } from '../entities/lx-card.entity';
+import { LxMemberStyle } from '../entities/lx-member-style.entity';
 import { LxRuhui } from '../entities/lx-ruhui.entity';
-import { LxUserManager } from '../entities/lx-user-manager.entity';
 import { LxWxuser } from '../entities/lx-wxuser.entity';
 import { LxXiehui } from '../entities/lx-xiehui.entity';
 
@@ -22,8 +22,8 @@ type AssignCardType = 'vip' | 'welfare';
 @Injectable()
 export class MemberBusinessService extends StudentBusinessDomainService {
   constructor(
-    @InjectRepository(LxUserManager)
-    private readonly managerRepo: Repository<LxUserManager>,
+    @InjectRepository(LxMemberStyle)
+    private readonly memberStyleRepo: Repository<LxMemberStyle>,
     @InjectRepository(LxXiehui)
     private readonly xiehuiRepo: Repository<LxXiehui>,
     @InjectRepository(LxRuhui)
@@ -36,18 +36,41 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     super(MEMBER_BUSINESS_CATEGORIES, '会员与组织业务');
   }
 
-  create(createDto: CreateStudentBusinessItemDto) {
+  async create(createDto: CreateStudentBusinessItemDto) {
     this.assertSupported(createDto.category);
 
     if (createDto.category === 'member-style') {
-      return this.managerRepo.save(
-        this.managerRepo.create({
+      const nextId = await this.getNextMemberStyleId();
+      return this.memberStyleRepo.save(
+        this.memberStyleRepo.create({
+          id: nextId,
+          legacyUserId: null,
+          orderNumber:
+            createDto.orderNumber !== undefined && createDto.orderNumber !== null
+              ? Number(createDto.orderNumber)
+              : null,
           userName: createDto.title,
-          mobile: createDto.subTitle ?? createDto.mobile ?? null,
-          remark: createDto.summary ?? null,
-          avaterUrl: createDto.coverImage ?? null,
-          regDate: createDto.publishedAt ? new Date(createDto.publishedAt) : null,
+          displayName: createDto.displayName ?? createDto.subTitle ?? null,
+          jobTitle: createDto.jobTitle ?? null,
+          memberRank: createDto.memberRank ?? null,
+          joinedAt: createDto.publishedAt ? new Date(createDto.publishedAt) : null,
+          mobile: createDto.mobile ?? null,
+          email: createDto.email ?? null,
+          gender: createDto.gender ?? null,
+          avatarUrl: createDto.coverImage ?? null,
+          backgroundUrl: createDto.backgroundImage ?? null,
+          honorRemark: createDto.honorRemark ?? createDto.summary ?? null,
+          graduationSchool: createDto.studySchool ?? null,
+          studyArea: createDto.studyCountry ?? null,
+          companyRemark: createDto.companyRemark ?? null,
+          jobRemark: createDto.jobRemark ?? null,
+          socialPostRemark: createDto.socialPost ?? null,
+          sortNumber: createDto.sortNumber ?? 0,
+          status: createDto.status ?? 0,
           createBy: 'system',
+          createTime: new Date(),
+          updateBy: 'system',
+          updateTime: new Date(),
         }),
       );
     }
@@ -83,13 +106,18 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     const currentLimit = Number(limit) || 10;
 
     if (query.category === 'member-style') {
-      const qb = this.managerRepo.createQueryBuilder('member');
+      const qb = this.memberStyleRepo.createQueryBuilder('member');
 
       if (query.title) {
-        qb.andWhere('member.userName LIKE :title', { title: `%${query.title}%` });
+        qb.andWhere(
+          '(member.userName LIKE :title OR member.displayName LIKE :title OR member.jobTitle LIKE :title)',
+          { title: `%${query.title}%` },
+        );
       }
 
-      qb.orderBy('member.regDate', 'DESC').addOrderBy('member.id', 'DESC');
+      qb.orderBy('member.sortNumber', 'ASC')
+        .addOrderBy('member.orderNumber', 'ASC')
+        .addOrderBy('member.id', 'ASC');
 
       const [data, total] = await qb
         .skip((currentPage - 1) * currentLimit)
@@ -97,19 +125,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         .getManyAndCount();
 
       return {
-        data: data.map((item) => ({
-          id: item.id,
-          category: 'member-style',
-          title: item.userName,
-          subTitle: item.mobile ?? null,
-          summary: item.remark ?? null,
-          coverImage: item.avaterUrl ?? null,
-          mobile: item.mobile ?? null,
-          publishedAt: item.regDate ?? null,
-          status: 0,
-          sortNumber: 0,
-          createTime: item.createTime,
-        })),
+        data: data.map((item) => this.mapMemberStyle(item)),
         meta: {
           total,
           page: currentPage,
@@ -208,24 +224,12 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     this.assertSupported(category);
 
     if (category === 'member-style') {
-      const entity = await this.managerRepo.findOne({ where: { id } });
+      const entity = await this.memberStyleRepo.findOne({ where: { id } });
       if (!entity) {
         throw new NotFoundException(`成员 ID ${id} 不存在`);
       }
 
-      return {
-        id: entity.id,
-        category,
-        title: entity.userName,
-        subTitle: entity.mobile ?? null,
-        summary: entity.remark ?? null,
-        coverImage: entity.avaterUrl ?? null,
-        mobile: entity.mobile ?? null,
-        publishedAt: entity.regDate ?? null,
-        status: 0,
-        sortNumber: 0,
-        createTime: entity.createTime,
-      };
+      return this.mapMemberStyle(entity);
     }
 
     if (category === 'association-intro' || category === 'joining-guide') {
@@ -260,30 +264,71 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     this.assertSupported(updateDto.category);
 
     if (updateDto.category === 'member-style') {
-      const entity = await this.managerRepo.findOne({ where: { id } });
+      const entity = await this.memberStyleRepo.findOne({ where: { id } });
       if (!entity) {
         throw new NotFoundException(`成员 ID ${id} 不存在`);
       }
 
       Object.assign(entity, {
         ...(updateDto.title !== undefined ? { userName: updateDto.title } : {}),
-        ...(updateDto.subTitle !== undefined || updateDto.mobile !== undefined
-          ? { mobile: updateDto.subTitle ?? updateDto.mobile ?? null }
+        ...(updateDto.displayName !== undefined || updateDto.subTitle !== undefined
+          ? { displayName: updateDto.displayName ?? updateDto.subTitle ?? null }
           : {}),
-        ...(updateDto.summary !== undefined ? { remark: updateDto.summary } : {}),
+        ...(updateDto.jobTitle !== undefined ? { jobTitle: updateDto.jobTitle } : {}),
+        ...(updateDto.memberRank !== undefined
+          ? { memberRank: updateDto.memberRank }
+          : {}),
+        ...(updateDto.summary !== undefined || updateDto.honorRemark !== undefined
+          ? { honorRemark: updateDto.honorRemark ?? updateDto.summary ?? null }
+          : {}),
         ...(updateDto.coverImage !== undefined
-          ? { avaterUrl: updateDto.coverImage }
+          ? { avatarUrl: updateDto.coverImage }
+          : {}),
+        ...(updateDto.backgroundImage !== undefined
+          ? { backgroundUrl: updateDto.backgroundImage }
           : {}),
         ...(updateDto.publishedAt !== undefined
           ? {
-              regDate: updateDto.publishedAt
+              joinedAt: updateDto.publishedAt
                 ? new Date(updateDto.publishedAt)
                 : null,
             }
           : {}),
+        ...(updateDto.mobile !== undefined ? { mobile: updateDto.mobile } : {}),
+        ...(updateDto.email !== undefined ? { email: updateDto.email } : {}),
+        ...(updateDto.gender !== undefined ? { gender: updateDto.gender } : {}),
+        ...(updateDto.studySchool !== undefined
+          ? { graduationSchool: updateDto.studySchool }
+          : {}),
+        ...(updateDto.studyCountry !== undefined
+          ? { studyArea: updateDto.studyCountry }
+          : {}),
+        ...(updateDto.companyRemark !== undefined
+          ? { companyRemark: updateDto.companyRemark }
+          : {}),
+        ...(updateDto.jobRemark !== undefined
+          ? { jobRemark: updateDto.jobRemark }
+          : {}),
+        ...(updateDto.socialPost !== undefined
+          ? { socialPostRemark: updateDto.socialPost }
+          : {}),
+        ...(updateDto.orderNumber !== undefined
+          ? {
+              orderNumber:
+                updateDto.orderNumber !== null
+                  ? Number(updateDto.orderNumber)
+                  : null,
+            }
+          : {}),
+        ...(updateDto.sortNumber !== undefined
+          ? { sortNumber: updateDto.sortNumber }
+          : {}),
+        ...(updateDto.status !== undefined ? { status: updateDto.status } : {}),
+        updateBy: 'system',
+        updateTime: new Date(),
       });
 
-      return this.managerRepo.save(entity);
+      return this.memberStyleRepo.save(entity);
     }
 
     if (
@@ -321,12 +366,12 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     this.assertSupported(category);
 
     if (category === 'member-style') {
-      const entity = await this.managerRepo.findOne({ where: { id } });
+      const entity = await this.memberStyleRepo.findOne({ where: { id } });
       if (!entity) {
         throw new NotFoundException(`成员 ID ${id} 不存在`);
       }
 
-      await this.managerRepo.remove(entity);
+      await this.memberStyleRepo.remove(entity);
       return { message: '删除成功', id };
     }
 
@@ -549,5 +594,47 @@ export class MemberBusinessService extends StudentBusinessDomainService {
       nativePlace: entity.jiguan ?? null,
       birthday: entity.birthday ?? null,
     };
+  }
+
+  private mapMemberStyle(entity: LxMemberStyle) {
+    return {
+      id: entity.id,
+      category: 'member-style',
+      title: entity.userName,
+      subTitle: entity.displayName ?? null,
+      summary: entity.honorRemark ?? null,
+      coverImage: entity.avatarUrl ?? null,
+      mobile: entity.mobile ?? null,
+      publishedAt: entity.joinedAt ?? null,
+      status: entity.status ?? 0,
+      sortNumber: entity.sortNumber ?? 0,
+      createTime: entity.createTime ?? null,
+      updateTime: entity.updateTime ?? null,
+      orderNumber:
+        entity.orderNumber !== null && entity.orderNumber !== undefined
+          ? String(entity.orderNumber)
+          : null,
+      displayName: entity.displayName ?? null,
+      jobTitle: entity.jobTitle ?? null,
+      memberRank: entity.memberRank ?? null,
+      email: entity.email ?? null,
+      gender: entity.gender ?? null,
+      backgroundImage: entity.backgroundUrl ?? null,
+      honorRemark: entity.honorRemark ?? null,
+      studySchool: entity.graduationSchool ?? null,
+      studyCountry: entity.studyArea ?? null,
+      companyRemark: entity.companyRemark ?? null,
+      jobRemark: entity.jobRemark ?? null,
+      socialPost: entity.socialPostRemark ?? null,
+    };
+  }
+
+  private async getNextMemberStyleId() {
+    const latest = await this.memberStyleRepo
+      .createQueryBuilder('member')
+      .orderBy('member.id', 'DESC')
+      .getOne();
+
+    return latest ? Number(latest.id) + 1 : 1;
   }
 }

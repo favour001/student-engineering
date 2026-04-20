@@ -7,6 +7,7 @@ import { CustomTable, ColumnConfig } from "../../components/table"
 import { User, Chip, Tooltip, Button } from "@heroui/react"
 import { EyeIcon, DeleteIcon, EditIcon } from "../../components/table/components/icon"
 import { userApi, UserData, UserQueryParams } from "./services/userApi"
+import { resolveAssetUrl } from "@/utils/upload"
 
 const searchConfig: SearchFieldConfig[] = [
   {
@@ -156,7 +157,7 @@ export default function UserManagePage() {
           <User
             avatarProps={{ 
               radius: "lg", 
-              src: item.profileImage || "/default-avatar.png",
+              src: item.profileImage ? resolveAssetUrl(item.profileImage) : "/default-avatar.png",
               size: "sm"
             }}
             description={item.account}

@@ -6,7 +6,7 @@ export class StatsTracker {
     updated: 0,
     skipped: 0,
     failed: 0,
-    total: 0
+    total: 0,
   };
 
   incrementCreated() {
@@ -15,12 +15,12 @@ export class StatsTracker {
 
   incrementUpdated() {
     this.stats.updated++;
-    this.stats.created--; // 调整统计
+    this.stats.created--;
   }
 
   incrementSkipped() {
     this.stats.skipped++;
-    this.stats.created--; // 调整统计
+    this.stats.created--;
   }
 
   incrementFailed() {
@@ -41,7 +41,7 @@ export class StatsTracker {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   总数量: ${this.stats.total}
   创建: ${this.stats.created}
-  更新: ${this.stats.updated} 
+  更新: ${this.stats.updated}
   跳过: ${this.stats.skipped}
   失败: ${this.stats.failed}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

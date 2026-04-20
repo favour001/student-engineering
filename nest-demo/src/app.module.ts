@@ -18,6 +18,7 @@ import { SysPermissionModule } from './sys-permission/sys-permission.module';
 import { SysMenuModule } from './sys-menu/sys-menu.module';
 import { StudentBusinessModule } from './student-business/student-business.module';
 import { PermissionGuard } from './guards/permission.guard';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PermissionGuard } from './guards/permission.guard';
     SysPermissionModule,
     SysMenuModule,
     StudentBusinessModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService,

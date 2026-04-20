@@ -8,7 +8,7 @@ import { PostBatchDeleteDto } from './dto/batch-delete.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 
 @ApiTags('岗位管理')
-@Controller('sys-post')
+@Controller(['sys/post', 'sys-post'])
 export class SysPostController {
   constructor(private readonly sysPostService: SysPostService) {}
 
@@ -26,6 +26,19 @@ export class SysPostController {
     @Query() querySysPost: QuerySysPostDto,
   ) {
     return this.sysPostService.findAll(page, limit, querySysPost);
+  }
+
+  @Get('list/all')
+  @ApiOperation({ summary: '获取所有岗位列表（不分页）' })
+  findAllList() {
+    return this.sysPostService.findAllList();
+  }
+
+  @Delete('batch/delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量删除岗位' })
+  batchDelete(@Body() batchDeleteDto: PostBatchDeleteDto) {
+    return this.sysPostService.batchDelete(batchDeleteDto.ids);
   }
 
   @Get(':id')
@@ -46,13 +59,6 @@ export class SysPostController {
     return this.sysPostService.remove(+id);
   }
 
-  @Delete('batch/delete')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '批量删除岗位' })
-  batchDelete(@Body() batchDeleteDto: PostBatchDeleteDto) {
-    return this.sysPostService.batchDelete(batchDeleteDto.ids);
-  }
-
   @Put(':id/status')
   @ApiOperation({ summary: '更新岗位状态' })
   updateStatus(
@@ -60,11 +66,5 @@ export class SysPostController {
     @Body() updateStatusDto: UpdateStatusDto
   ) {
     return this.sysPostService.updateStatus(+id, updateStatusDto.status);
-  }
-
-  @Get('list/all')
-  @ApiOperation({ summary: '获取所有岗位列表（不分页）' })
-  findAllList() {
-    return this.sysPostService.findAllList();
   }
 }

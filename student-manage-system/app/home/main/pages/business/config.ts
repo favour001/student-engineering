@@ -33,12 +33,20 @@ export type BusinessExtraField = {
     | "companyAddress"
     | "auditStatus"
     | "socialPost"
+    | "mobile"
     | "nickName"
     | "email"
     | "nativePlace"
     | "birthday"
+    | "displayName"
+    | "jobTitle"
+    | "memberRank"
+    | "backgroundImage"
+    | "honorRemark"
+    | "companyRemark"
+    | "jobRemark"
   label: string
-  type?: "text" | "number" | "datetime-local" | "textarea" | "select"
+  type?: "text" | "number" | "datetime-local" | "textarea" | "select" | "file" | "richtext"
   options?: BusinessExtraFieldOption[]
 }
 
@@ -55,6 +63,8 @@ export interface BusinessCategoryConfig {
   authorLabel?: string
   publishedAtLabel?: string
   enableStatus?: boolean
+  summaryInputType?: "textarea" | "richtext"
+  contentInputType?: "textarea" | "richtext"
   extraFields?: BusinessExtraField[]
   searchFields?: Array<{
     name: "title" | "status" | "mobile" | "nickName" | "vipFlag" | "auditStatus"
@@ -103,18 +113,43 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
   },
   "member-style": {
     title: "成员风采",
-    subtitle: "维护成员展示内容、图片与简介。",
+    subtitle: "维护成员风采资料、留学背景、企业信息和社会职务展示。",
     primaryLabel: "成员姓名",
-    secondaryLabel: "手机号",
-    summaryLabel: "成员介绍",
+    secondaryLabel: "展示名称",
+    summaryLabel: "荣誉简介",
+    summaryInputType: "richtext",
     coverImageLabel: "头像地址",
-    publishedAtLabel: "入职日期",
+    publishedAtLabel: "加入时间",
+    extraFields: [
+      { key: "jobTitle", label: "岗位头衔" },
+      { key: "memberRank", label: "排序文案" },
+      { key: "mobile", label: "手机号" },
+      { key: "email", label: "邮箱" },
+      {
+        key: "gender",
+        label: "性别",
+        type: "select",
+        options: [
+          { label: "请选择", value: "" },
+          { label: "男", value: "1" },
+          { label: "女", value: "2" },
+        ],
+      },
+      { key: "studySchool", label: "毕业院校" },
+      { key: "studyCountry", label: "留学地区" },
+      { key: "orderNumber", label: "旧系统排序号" },
+      { key: "backgroundImage", label: "背景图", type: "file" },
+      { key: "companyRemark", label: "企业信息", type: "richtext" },
+      { key: "jobRemark", label: "岗位信息", type: "richtext" },
+      { key: "socialPost", label: "社会职务", type: "richtext" },
+    ],
   },
   "association-intro": {
     title: "协会介绍",
     subtitle: "维护协会定位、使命和组织信息。",
     primaryLabel: "介绍标题",
     summaryLabel: "介绍描述",
+    summaryInputType: "richtext",
     coverImageLabel: "图片地址",
   },
   "joining-guide": {
@@ -122,6 +157,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     subtitle: "维护入会条件、流程与说明。",
     primaryLabel: "须知标题",
     summaryLabel: "须知描述",
+    summaryInputType: "richtext",
     coverImageLabel: "图片地址",
   },
   notice: {
@@ -138,6 +174,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     secondaryLabel: "文章类型",
     summaryLabel: "备注说明",
     contentLabel: "文章内容",
+    contentInputType: "richtext",
     externalUrlLabel: "文章地址",
   },
   "innovation-shunde": {
@@ -146,6 +183,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     primaryLabel: "专题标题",
     secondaryLabel: "专题类型",
     contentLabel: "专题内容",
+    contentInputType: "richtext",
     coverImageLabel: "专题图片",
   },
   "study-abroad-news": {
@@ -155,6 +193,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     secondaryLabel: "内容类型",
     summaryLabel: "资讯备注",
     contentLabel: "资讯内容",
+    contentInputType: "richtext",
     externalUrlLabel: "资讯地址",
     sourceLabel: "资讯类型",
   },
@@ -252,7 +291,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       { key: "studyCountry", label: "留学国家/地区" },
       { key: "studySchool", label: "留学学校" },
       { key: "major", label: "专业/证书" },
-      { key: "certificate", label: "证书地址" },
+      { key: "certificate", label: "证书地址", type: "file" },
       {
         key: "gender",
         label: "性别",
@@ -301,7 +340,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       title: "分配会员卡",
     },
     extraFields: [
-      { key: "rule", label: "使用规则", type: "textarea" },
+      { key: "rule", label: "使用规则", type: "richtext" },
       { key: "startTime", label: "开始时间", type: "datetime-local" },
       { key: "endTime", label: "结束时间", type: "datetime-local" },
     ],
@@ -312,6 +351,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     primaryLabel: "福利标题",
     summaryLabel: "福利描述",
     contentLabel: "使用规则",
+    contentInputType: "richtext",
     coverImageLabel: "福利图片",
     assignment: {
       type: "card",

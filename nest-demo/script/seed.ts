@@ -3,9 +3,9 @@ import { Logger } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { SeedOptions } from './interfaces/seed-options.interface';
 import { SeedConfig } from './interfaces/seed-config.interface';
-import { ConfigLoader } from './utils/config-loader';
-import { StatsTracker } from './utils/stats-tracker';
-import { CliHelper } from './utils/cli-helper';
+import { ConfigLoader } from './support/config-loader';
+import { StatsTracker } from './support/stats-tracker';
+import { CliHelper } from './support/cli-helper';
 import {
   UserSeeder,
   DepartmentSeeder,

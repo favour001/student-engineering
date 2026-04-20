@@ -3,6 +3,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import type { StringValue } from 'ms';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from '../guards//local.strategy';
 import { JwtStrategy } from '../guards/jwt.strategy';
@@ -15,14 +16,12 @@ import { RefreshToken } from './entities/refresh-token.entity';
     TypeOrmModule.forFeature([RefreshToken]),
     PassportModule,
     JwtModule.registerAsync({
-      useFactory: async (configService: ConfigService) => (
-        {
-          secret: configService.get<string>('JWT_SECRET'),
-          signOptions: {
-            expiresIn: configService.get<string>('JWT_EXPIRE_TIME')
-          }
-        }
-      ),
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRE_TIME') as StringValue,
+        },
+      }),
       inject: [ConfigService]
     })
   ],

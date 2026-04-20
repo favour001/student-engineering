@@ -1,10 +1,8 @@
-// 在 AuthService 类中添加这个私有方法
 export function parseDeviceInfo(userAgent: string): string {
   if (!userAgent || userAgent === 'unknown') {
     return 'Unknown Device';
   }
 
-  // 提取浏览器信息
   let browser = 'Unknown Browser';
   if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
     browser = 'Chrome';
@@ -18,7 +16,6 @@ export function parseDeviceInfo(userAgent: string): string {
     browser = 'Opera';
   }
 
-  // 提取操作系统信息
   let os = 'Unknown OS';
   if (userAgent.includes('Windows NT 10.0')) {
     os = 'Windows 10/11';
@@ -34,7 +31,6 @@ export function parseDeviceInfo(userAgent: string): string {
     os = 'iOS';
   }
 
-  // 提取设备类型
   let deviceType = 'Desktop';
   if (userAgent.includes('Mobile')) {
     deviceType = 'Mobile';

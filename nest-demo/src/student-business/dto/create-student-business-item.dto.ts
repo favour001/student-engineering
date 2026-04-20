@@ -281,4 +281,43 @@ export class CreateStudentBusinessItemDto {
   @IsOptional()
   @IsDateString()
   birthday?: string;
+
+  @ApiPropertyOptional({ description: '展示名称' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  displayName?: string;
+
+  @ApiPropertyOptional({ description: '岗位头衔' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  jobTitle?: string;
+
+  @ApiPropertyOptional({ description: '成员排序文案' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  memberRank?: string;
+
+  @ApiPropertyOptional({ description: '背景图地址' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  backgroundImage?: string;
+
+  @ApiPropertyOptional({ description: '荣誉简介' })
+  @IsOptional()
+  @IsString()
+  honorRemark?: string;
+
+  @ApiPropertyOptional({ description: '企业信息' })
+  @IsOptional()
+  @IsString()
+  companyRemark?: string;
+
+  @ApiPropertyOptional({ description: '岗位信息' })
+  @IsOptional()
+  @IsString()
+  jobRemark?: string;
 }

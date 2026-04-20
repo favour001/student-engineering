@@ -17,6 +17,8 @@ import {
   Textarea,
 } from "@heroui/react"
 import { Plus, SearchIcon, Sparkles, UserPlus, Users } from "lucide-react"
+import { FileUploadField } from "../components/file-upload-field"
+import { RichTextEditor } from "../components/rich-text-editor"
 import { Search, SearchFieldConfig } from "../../components/search"
 import { Page } from "../../components/page"
 import { CustomTable, ColumnConfig } from "../../components/table"
@@ -80,6 +82,13 @@ const initialFormState: Partial<BusinessContentItem> = {
   email: "",
   nativePlace: "",
   birthday: "",
+  displayName: "",
+  jobTitle: "",
+  memberRank: "",
+  backgroundImage: "",
+  honorRemark: "",
+  companyRemark: "",
+  jobRemark: "",
 }
 
 function normalizeDateInput(value?: string | null) {
@@ -410,6 +419,35 @@ export default function BusinessCategoryPage({
   const renderExtraField = (field: BusinessExtraField) => {
     const value = formState[field.key]
 
+    if (field.type === "richtext") {
+      return (
+        <RichTextEditor
+          key={field.key}
+          label={field.label}
+          folder={category}
+          value={String(value ?? "")}
+          minHeight={220}
+          onChange={(nextValue) =>
+            setFormState((prev) => ({ ...prev, [field.key]: nextValue }))
+          }
+        />
+      )
+    }
+
+    if (field.type === "file") {
+      return (
+        <FileUploadField
+          key={field.key}
+          label={field.label}
+          folder={category}
+          value={String(value ?? "")}
+          onChange={(nextValue) =>
+            setFormState((prev) => ({ ...prev, [field.key]: nextValue }))
+          }
+        />
+      )
+    }
+
     if (field.type === "textarea") {
       return (
         <Textarea
@@ -548,11 +586,13 @@ export default function BusinessCategoryPage({
               />
             ) : null}
             {categoryConfig.coverImageLabel ? (
-              <Input
+              <FileUploadField
                 label={categoryConfig.coverImageLabel}
+                folder={category}
+                accept="image/*"
                 value={formState.coverImage || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, coverImage: e.target.value }))
+                onChange={(nextValue) =>
+                  setFormState((prev) => ({ ...prev, coverImage: nextValue }))
                 }
               />
             ) : null}
@@ -616,25 +656,49 @@ export default function BusinessCategoryPage({
               </div>
             ) : null}
             {categoryConfig.summaryLabel ? (
-              <Textarea
-                label={categoryConfig.summaryLabel}
-                className="md:col-span-2"
-                value={formState.summary || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, summary: e.target.value }))
-                }
-              />
+              categoryConfig.summaryInputType === "richtext" ? (
+                <RichTextEditor
+                  label={categoryConfig.summaryLabel}
+                  folder={category}
+                  value={formState.summary || ""}
+                  minHeight={220}
+                  onChange={(nextValue) =>
+                    setFormState((prev) => ({ ...prev, summary: nextValue }))
+                  }
+                />
+              ) : (
+                <Textarea
+                  label={categoryConfig.summaryLabel}
+                  className="md:col-span-2"
+                  value={formState.summary || ""}
+                  onChange={(e) =>
+                    setFormState((prev) => ({ ...prev, summary: e.target.value }))
+                  }
+                />
+              )
             ) : null}
             {categoryConfig.contentLabel ? (
-              <Textarea
-                label={categoryConfig.contentLabel}
-                className="md:col-span-2"
-                minRows={10}
-                value={formState.content || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, content: e.target.value }))
-                }
-              />
+              categoryConfig.contentInputType === "richtext" ? (
+                <RichTextEditor
+                  label={categoryConfig.contentLabel}
+                  folder={category}
+                  value={formState.content || ""}
+                  minHeight={320}
+                  onChange={(nextValue) =>
+                    setFormState((prev) => ({ ...prev, content: nextValue }))
+                  }
+                />
+              ) : (
+                <Textarea
+                  label={categoryConfig.contentLabel}
+                  className="md:col-span-2"
+                  minRows={10}
+                  value={formState.content || ""}
+                  onChange={(e) =>
+                    setFormState((prev) => ({ ...prev, content: e.target.value }))
+                  }
+                />
+              )
             ) : null}
           </ModalBody>
           <ModalFooter>

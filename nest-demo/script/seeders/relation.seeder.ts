@@ -4,7 +4,7 @@ import { SysRoleService } from '../../src/sys-role/sys-role.service';
 import { SysMenuService } from '../../src/sys-menu/sys-menu.service';
 import { DataSource } from 'typeorm';
 import { SeedOptions } from '../interfaces/seed-options.interface';
-import { StatsTracker } from '../utils/stats-tracker';
+import { StatsTracker } from '../support/stats-tracker';
 
 export class RelationSeeder {
   private readonly logger = new Logger('RelationSeeder');

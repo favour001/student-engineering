@@ -14,7 +14,7 @@ export class ConfigLoader {
       this.logger.log(`📂 加载配置文件: ${configFile}`);
       const rawData = fs.readFileSync(configFile, 'utf8');
       const config = JSON.parse(rawData);
-      
+
       return config;
     } catch (error) {
       throw new Error(`配置文件加载失败: ${error.message}`);

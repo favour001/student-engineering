@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "react-quill-new/dist/quill.snow.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -223,4 +224,22 @@ body {
       linear-gradient(180deg, rgba(255,255,255,0.94), rgba(240,249,255,0.92));
     @apply min-h-screen text-foreground;
   }
+}
+
+.ql-toolbar.ql-snow {
+  border: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.75));
+}
+
+.ql-container.ql-snow {
+  border: 0;
+  font-family: var(--font-sans);
+}
+
+.ql-editor {
+  min-height: 220px;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: rgb(15 23 42);
 }

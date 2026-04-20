@@ -1,14 +1,14 @@
 import * as readline from 'readline';
-import { SeedOptions } from '../interfaces/seed-options.interface';
 import * as path from 'path';
+import { SeedOptions } from '../interfaces/seed-options.interface';
 
 export class CliHelper {
   static parseArguments(args: string[]): SeedOptions {
     const options: SeedOptions = {};
-    
+
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      
+
       switch (arg) {
         case '--force':
         case '-f':
@@ -42,7 +42,11 @@ export class CliHelper {
           process.exit(0);
         default:
           if (!arg.startsWith('--') && !options.configFile) {
-            if (['users', 'roles', 'menus', 'departments', 'posts', 'all'].includes(arg)) {
+            if (
+              ['users', 'roles', 'menus', 'departments', 'posts', 'all'].includes(
+                arg,
+              )
+            ) {
               options.module = arg;
             } else {
               options.configFile = arg;
@@ -51,10 +55,16 @@ export class CliHelper {
       }
     }
 
-    // 设置默认值
     options.module = options.module || 'all';
     if (!options.configFile) {
-      options.configFile = path.join(__dirname, '..', '..', 'config', 'seeds', 'development.json');
+      options.configFile = path.join(
+        __dirname,
+        '..',
+        '..',
+        'config',
+        'seeds',
+        'development.json',
+      );
     }
 
     return options;
@@ -85,12 +95,12 @@ export class CliHelper {
   -h, --help        显示帮助信息
 
 示例:
-  npm run seed                                    # 执行所有模块
-  npm run seed users                              # 只执行用户数据
-  npm run seed departments                        # 只执行部门数据
-  npm run seed all --force --verbose             # 执行所有模块，强制模式
-  npm run seed --config ./my-config.json         # 使用自定义配置文件
-  npm run seed --module menus --dry-run          # 预演菜单数据
+  npm run seed
+  npm run seed users
+  npm run seed departments
+  npm run seed all --force --verbose
+  npm run seed --config ./my-config.json
+  npm run seed --module menus --dry-run
     `);
   }
 

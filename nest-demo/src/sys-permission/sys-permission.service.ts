@@ -39,9 +39,9 @@ export class SysPermissionService {
     const permissions = new Set<string>();
     
     user.roles.forEach((role) => {
-      if (role.status === 0) {
+      if (this.isEnabledStatus(role.status)) {
         role.menus.forEach((menu) => {
-          if (menu.status === 0 && menu.permission) {
+          if (this.isEnabledStatus(menu.status) && menu.permission) {
             permissions.add(menu.permission);
           }
         });
@@ -68,9 +68,9 @@ export class SysPermissionService {
     const menuMap = new Map<number, SysMenu>();
     
     user.roles.forEach((role) => {
-      if (role.status === 0) {
+      if (this.isEnabledStatus(role.status)) {
         role.menus.forEach((menu) => {
-          if (menu.status === 0 && menu.type !== 3) {
+          if (this.isEnabledStatus(menu.status) && menu.type !== 3) {
             menuMap.set(menu.id, menu);
           }
         });
@@ -97,9 +97,13 @@ export class SysPermissionService {
     const permissions = new Set<string>();
     
     user.roles.forEach((role) => {
-      if (role.status === 0) {
+      if (this.isEnabledStatus(role.status)) {
         role.menus.forEach((menu) => {
-          if (menu.status === 0 && menu.type === 3 && menu.permission) {
+          if (
+            this.isEnabledStatus(menu.status) &&
+            menu.type === 3 &&
+            menu.permission
+          ) {
             permissions.add(menu.permission);
           }
         });
@@ -155,11 +159,12 @@ export class SysPermissionService {
    */
   async getAllMenuTree(): Promise<MenuTree[]> {
     const menus = await this.menuRepo.find({
-      where: { status: 0 },
       order: { sortNumber: 'ASC' },
     });
 
-    return this.buildMenuTree(menus);
+    return this.buildMenuTree(
+      menus.filter((menu) => this.isEnabledStatus(menu.status)),
+    );
   }
 
   /**
@@ -237,7 +242,13 @@ export class SysPermissionService {
       relations: ['roles']
     });
 
-    // 角色状态：0=未启用，1=启用
-    return user ? user.roles.filter((role) => role.status === 0) : [];
+    return user
+      ? user.roles.filter((role) => this.isEnabledStatus(role.status))
+      : [];
+  }
+
+  // Legacy data currently stores enabled states as both 0 and 1 across modules.
+  private isEnabledStatus(status: number | null | undefined): boolean {
+    return status === 0 || status === 1;
   }
 }

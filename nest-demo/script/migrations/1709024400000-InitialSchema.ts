@@ -185,7 +185,8 @@ export class InitialSchema1709024400000 implements Migration {
         \`timestamp\` bigint NOT NULL,
         \`name\` varchar(255) NOT NULL,
         \`executed_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-        PRIMARY KEY (\`id\`)
+        PRIMARY KEY (\`id\`),
+        UNIQUE INDEX \`UQ_migrations_timestamp_name\` (\`timestamp\`, \`name\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
   }

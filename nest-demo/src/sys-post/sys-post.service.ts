@@ -5,7 +5,7 @@ import { CreateSysPostDto } from './dto/create-sys-post.dto';
 import { UpdateSysPostDto } from './dto/update-sys-post.dto';
 import { QuerySysPostDto } from './dto/query-sys-post.dto';
 import { SysPost } from './entities/sys-post.entity';
-import { FilterBuilder } from '../utils/filter-builder';
+import { FilterBuilder } from '../common/query/filter-builder';
 
 @Injectable()
 export class SysPostService {

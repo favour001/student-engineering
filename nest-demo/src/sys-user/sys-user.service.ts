@@ -5,7 +5,7 @@ import { QuerySysUserDto } from './dto/query-sys-user.dto';
 import { Repository, SelectQueryBuilder, In } from 'typeorm';
 import { SysUser } from './entities/sys-user.entity'
 import { InjectRepository } from '@nestjs/typeorm';
-import { FilterBuilder } from '../utils/filter-builder';
+import { FilterBuilder } from '../common/query/filter-builder';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()

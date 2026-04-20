@@ -6,7 +6,7 @@ import { UpdateSysRoleDto } from './dto/update-sys-role.dto';
 import { QuerySysRoleDto } from './dto/query-sys-role.dto';
 import { SysRole } from './entities/sys-role.entity';
 import { SysUser } from '../sys-user/entities/sys-user.entity';
-import { FilterBuilder } from '../utils/filter-builder';
+import { FilterBuilder } from '../common/query/filter-builder';
 
 @Injectable()
 export class SysRoleService {

@@ -5,7 +5,7 @@ import { CreateSysDepartmentDto } from './dto/create-sys-department.dto';
 import { UpdateSysDepartmentDto } from './dto/update-sys-department.dto';
 import { SysDepartment } from './entities/sys-department.entity';
 import { QuerySysDepartmentDto } from './dto/query-sys-department.dto';
-import { FilterBuilder } from '../utils/filter-builder';
+import { FilterBuilder } from '../common/query/filter-builder';
 
 @Injectable()
 export class SysDepartmentService {
