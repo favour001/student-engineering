@@ -9,11 +9,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const fileStorageRoot = getFileStorageRoot();
   const fileStoragePublicPrefix = getFileStoragePublicPrefix();
-
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-  ];
+  const allowedOrigins = (
+    process.env.CORS_ORIGIN ||
+    [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://sdsosa.com',
+      'http://sdsosa.com',
+    ].join(',')
+  )
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -28,6 +35,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   });
+  app.setGlobalPrefix('api');
 
   app.useLogger(app.get(Logger))
   app.use(fileStoragePublicPrefix, express.static(fileStorageRoot));

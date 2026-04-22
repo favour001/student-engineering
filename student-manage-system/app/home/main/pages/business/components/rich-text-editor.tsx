@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useRef } from "react"
+import React, { CSSProperties, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import { resolveAssetUrl, uploadFile } from "@/utils/upload"
 
@@ -25,10 +25,11 @@ export function RichTextEditor({
   label,
   value,
   folder,
-  minHeight = 280,
+  minHeight = 350,
   onChange,
 }: RichTextEditorProps) {
   const quillRef = useRef<any>(null)
+  const editorStyle = { "--editor-height": `${minHeight}px` } as CSSProperties
 
   const modules = useMemo(
     () => ({
@@ -80,16 +81,19 @@ export function RichTextEditor({
   return (
     <div className="space-y-2 md:col-span-2">
       <label className="text-sm font-medium text-slate-700">{label}</label>
-      <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+      <div
+        className="rich-text-editor-shell rounded-[22px] border border-slate-200 bg-white shadow-sm"
+        style={editorStyle}
+      >
         <ReactQuill
           ref={quillRef}
           theme="snow"
           value={value || ""}
           onChange={onChange}
           modules={modules}
-          style={{ minHeight }}
         />
       </div>
+      <p className="text-xs text-slate-400">编辑区内部滚动，工具栏保持在顶部。</p>
     </div>
   )
 }

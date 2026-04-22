@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.9",
+    "@internationalized/date": "^3.12.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",

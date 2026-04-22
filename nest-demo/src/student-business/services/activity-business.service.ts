@@ -44,7 +44,10 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
             : null,
         signQuota: createDto.quantity ?? 0,
         signType: createDto.extraType ?? null,
-        status: createDto.extraType ?? null,
+        status:
+          createDto.status !== undefined && createDto.status !== null
+            ? String(createDto.status)
+            : '0',
         createBy: 'system',
       });
 
@@ -88,14 +91,14 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
           coverImage: item.avaterUrl ?? null,
           source: item.labelName ?? null,
           author: item.contactName ?? null,
-          mobile: item.contactMobile ?? null,
+          contactMobile: item.contactMobile ?? null,
           startTime: item.startTime ?? null,
           endTime: item.endTime ?? null,
           address: item.address ?? null,
           money: item.money ? Number(item.money) : null,
           quantity: item.signQuota ?? 0,
           extraType: item.signType ?? null,
-          status: 0,
+          status: item.status !== null ? Number(item.status) : 0,
           sortNumber: 0,
           createTime: item.createTime,
         })),
@@ -161,14 +164,14 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
         coverImage: entity.avaterUrl ?? null,
         source: entity.labelName ?? null,
         author: entity.contactName ?? null,
-        mobile: entity.contactMobile ?? null,
+        contactMobile: entity.contactMobile ?? null,
         startTime: entity.startTime ?? null,
         endTime: entity.endTime ?? null,
         address: entity.address ?? null,
         money: entity.money ? Number(entity.money) : null,
         quantity: entity.signQuota ?? 0,
         extraType: entity.signType ?? null,
-        status: 0,
+        status: entity.status !== null ? Number(entity.status) : 0,
         sortNumber: 0,
         createTime: entity.createTime,
       };
@@ -211,9 +214,8 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
         ...(updateDto.author !== undefined || updateDto.contactName !== undefined
           ? { contactName: updateDto.author ?? updateDto.contactName ?? null }
           : {}),
-        ...(updateDto.mobile !== undefined ||
-        updateDto.contactMobile !== undefined
-          ? { contactMobile: updateDto.mobile ?? updateDto.contactMobile ?? null }
+        ...(updateDto.contactMobile !== undefined || updateDto.mobile !== undefined
+          ? { contactMobile: updateDto.contactMobile ?? updateDto.mobile ?? null }
           : {}),
         ...(updateDto.startTime !== undefined
           ? { startTime: updateDto.startTime ? new Date(updateDto.startTime) : null }
@@ -230,6 +232,9 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
           : {}),
         ...(updateDto.extraType !== undefined
           ? { signType: updateDto.extraType }
+          : {}),
+        ...(updateDto.status !== undefined
+          ? { status: updateDto.status !== null ? String(updateDto.status) : null }
           : {}),
       });
 

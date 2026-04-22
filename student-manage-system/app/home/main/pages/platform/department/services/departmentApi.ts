@@ -17,6 +17,7 @@ export interface DepartmentData {
   createTime: string
   updateBy: string
   updateTime: string
+  children?: DepartmentData[]
 }
 
 export interface DepartmentListResponse {
@@ -41,6 +42,11 @@ export const departmentApi = {
 
   async getDepartmentById(id: number): Promise<DepartmentData> {
     const response = await apiClient.get(`/sys/department/${id}`)
+    return response.data
+  },
+
+  async getAllDepartments(): Promise<DepartmentData[]> {
+    const response = await apiClient.get('/sys/department/list')
     return response.data
   },
 

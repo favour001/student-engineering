@@ -117,6 +117,13 @@ export const contentApi = {
     return normalizePaginatedResponse<BusinessContentItem>(response.data)
   },
 
+  async getItem(id: number, category: string) {
+    const response = await apiClient.get(`${getDomainRoute(category)}/${id}`, {
+      params: { category },
+    })
+    return response.data as BusinessContentItem
+  },
+
   async createItem(data: Partial<BusinessContentItem>) {
     await apiClient.post(getDomainRoute(String(data.category)), data)
   },

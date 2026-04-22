@@ -2,7 +2,12 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
 const getBackendUrl = (): string => {
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8888';
+  return (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8888').replace(/\/+$/, '');
+};
+
+const getBackendApiUrl = (): string => {
+  const backendUrl = getBackendUrl();
+  return backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
 };
 
 const getCookieOptions = (days: number) => ({
@@ -12,7 +17,7 @@ const getCookieOptions = (days: number) => ({
 });
 
 const apiClient = axios.create({
-  baseURL: getBackendUrl(),
+  baseURL: getBackendApiUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -52,7 +57,7 @@ apiClient.interceptors.response.use(
           throw new Error('No refresh token');
         }
 
-        const response = await axios.post(`${getBackendUrl()}/auth/refresh`, {
+        const response = await axios.post(`${getBackendApiUrl()}/auth/refresh`, {
           refresh_token: refreshToken,
         });
 

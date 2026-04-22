@@ -164,6 +164,12 @@ export class ContentBusinessService extends StudentBusinessDomainService {
       });
     }
 
+    if (config.listSelectFields?.length) {
+      qb.select(
+        config.listSelectFields.map((field) => `${config.alias}.${field}`),
+      );
+    }
+
     qb.orderBy(`${config.alias}.${config.orderField}`, 'DESC').addOrderBy(
       `${config.alias}.id`,
       'DESC',
@@ -452,6 +458,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
     titleField: string;
     statusField?: string;
     orderField: string;
+    listSelectFields?: string[];
   } {
     switch (category) {
       case 'notice':
@@ -475,6 +482,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
           alias: 'tweet',
           titleField: 'tweetTitle',
           orderField: 'createTime',
+          listSelectFields: ['id', 'tweetTitle', 'tweetType', 'tweetImg', 'createTime'],
         };
       case 'study-abroad-news':
         return {

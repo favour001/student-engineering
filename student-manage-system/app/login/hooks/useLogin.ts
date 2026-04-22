@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { authService } from '../services/authService';
@@ -15,17 +15,19 @@ export const useLogin = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [phase, setPhase] = useState<'idle' | 'authenticating' | 'redirecting'>('idle');
+
+  useEffect(() => {
+    router.prefetch('/home');
+  }, [router]);
 
   const login = async (credentials: LoginRequest) => {
     setLoading(true);
     setError('');
+    setPhase('authenticating');
     
     try {
-      // Step 1: Login and get complete user info + tokens
       const loginData = await authService.login(credentials);
-      console.log('登录成功:', loginData);
-      
-      // Store user ID and user info from login response
       const userInfo = {
         id: loginData.id,
         userName: loginData.userName,
@@ -38,16 +40,16 @@ export const useLogin = () => {
       appStore.pageDomain.login.userId = loginData.id;
       appStore.pageDomain.home.uiDomain.layout.leftSidebar.userInfo = userInfo;
       
-      // Save userInfo to cookies
       Cookies.set('userInfo', JSON.stringify(userInfo), getCookieOptions(7));
-      
-      console.log('✅ 登录成功，跳转到首页');
+
+      setPhase('redirecting');
+      await new Promise((resolve) => setTimeout(resolve, 550));
       router.replace('/home');
       return loginData;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '登录失败';
       setError(errorMessage);
-      console.error('登录失败:', err);
+      setPhase('idle');
       throw err;
     } finally {
       setLoading(false);
@@ -57,6 +59,7 @@ export const useLogin = () => {
   return {
     login,
     loading,
+    phase,
     error,
     setError,
   };

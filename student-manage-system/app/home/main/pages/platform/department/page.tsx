@@ -4,9 +4,11 @@ import React, { useState, useEffect } from "react"
 import { Search, SearchFieldConfig } from "../../components/search"
 import { Page } from "../../components/page"
 import { CustomTable, ColumnConfig } from "../../components/table"
-import { Chip, Tooltip, Button } from "@heroui/react"
+import { Chip, Tooltip, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Select, SelectItem, Textarea } from "@heroui/react"
 import { EyeIcon, DeleteIcon, EditIcon } from "../../components/table/components/icon"
+import { Sparkles, Plus } from "lucide-react"
 import { departmentApi, DepartmentData, DepartmentQueryParams } from "./services/departmentApi"
+import { systemStatusChipMap, systemStatusOptions, systemStatusSearchOptions } from "../../../lib/enums"
 
 const searchConfig: SearchFieldConfig[] = [
   {
@@ -31,11 +33,7 @@ const searchConfig: SearchFieldConfig[] = [
     name: "status",
     label: "状态",
     type: "select",
-    options: [
-      { label: "全部", value: "" },
-      { label: "正常", value: "0" },
-      { label: "禁用", value: "1" }
-    ]
+    options: systemStatusSearchOptions
   }
 ]
 
@@ -52,18 +50,28 @@ const columns: ColumnConfig[] = [
   { name: "操作", uid: "actions", align: "center" }
 ]
 
-const statusMap: Record<number, { label: string; color: "success" | "danger" | "warning" }> = {
-  0: { label: "正常", color: "success" },
-  1: { label: "禁用", color: "danger" }
-}
-
 export default function DepartmentManagePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [departmentData, setDepartmentData] = useState<DepartmentData[]>([])
+  const [allDepartments, setAllDepartments] = useState<DepartmentData[]>([])
   const [searchParams, setSearchParams] = useState<Record<string, any>>({})
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingDept, setEditingDept] = useState<DepartmentData | null>(null)
+  const [formState, setFormState] = useState<Partial<DepartmentData>>({
+    name: "",
+    code: "",
+    leader: "",
+    phone: "",
+    email: "",
+    address: "",
+    sortNumber: 0,
+    status: 0,
+    describe: "",
+    parentId: null as any,
+  })
 
   const fetchDepartments = async (params: DepartmentQueryParams = {}) => {
     setLoading(true)
@@ -87,7 +95,21 @@ export default function DepartmentManagePage() {
 
   useEffect(() => {
     fetchDepartments(searchParams)
+    departmentApi.getAllDepartments().then(setAllDepartments).catch(console.error)
   }, [currentPage, pageSize])
+
+  const flattenTree = (depts: DepartmentData[], depth = 0): (DepartmentData & { depth: number })[] => {
+    let result: (DepartmentData & { depth: number })[] = []
+    for (const dept of depts) {
+      result.push({ ...dept, depth })
+      if (dept.children && dept.children.length > 0) {
+        result = result.concat(flattenTree(dept.children, depth + 1))
+      }
+    }
+    return result
+  }
+  const flattenedTableData = flattenTree(departmentData)
+  const flattenedDeptOptions = flattenTree(allDepartments)
 
   const handleSearch = (values: Record<string, any>) => {
     const filteredValues = Object.fromEntries(
@@ -117,8 +139,62 @@ export default function DepartmentManagePage() {
     console.log("查看部门:", department)
   }
 
+  const handleCreate = () => {
+    setEditingDept(null)
+    setFormState({
+      name: "",
+      code: "",
+      leader: "",
+      phone: "",
+      email: "",
+      address: "",
+      sortNumber: 0,
+      status: 0,
+      describe: "",
+      parentId: null as any,
+    })
+    setIsModalOpen(true)
+  }
+
   const handleEdit = (department: DepartmentData) => {
-    console.log("编辑部门:", department)
+    setEditingDept(department)
+    setFormState({
+      ...department,
+      parentId: department.parentId ?? (null as any),
+    })
+    setIsModalOpen(true)
+  }
+
+  const handleSubmit = async () => {
+    if (!formState.name || !formState.code) {
+      alert("请填写部门名称和编码")
+      return
+    }
+
+    const payload = {
+      ...formState,
+      sortNumber: Number(formState.sortNumber || 0),
+      status: Number(formState.status || 0),
+      parentId:
+        formState.parentId === null || formState.parentId === undefined || (formState.parentId as any) === "none"
+          ? null
+          : Number(formState.parentId),
+    }
+
+    try {
+      if (editingDept) {
+        await departmentApi.updateDepartment(editingDept.id, payload as any)
+      } else {
+        await departmentApi.createDepartment(payload as any)
+      }
+      alert("保存成功")
+      setIsModalOpen(false)
+      fetchDepartments(searchParams)
+      departmentApi.getAllDepartments().then(setAllDepartments)
+    } catch (error) {
+      console.error("保存部门失败:", error)
+      alert("保存失败")
+    }
   }
 
   const handleDelete = async (department: DepartmentData) => {
@@ -138,8 +214,15 @@ export default function DepartmentManagePage() {
     const cellValue = item[columnKey as keyof DepartmentData]
 
     switch (columnKey) {
+      case "name":
+        return (
+          <div style={{ paddingLeft: `${((item as any).depth || 0) * 1.5}rem` }} className="flex items-center gap-2">
+            {((item as any).depth || 0) > 0 && <span className="text-gray-300">├</span>}
+            {item.name}
+          </div>
+        )
       case "status":
-        const statusInfo = statusMap[item.status] || { label: "未知", color: "warning" as const }
+        const statusInfo = systemStatusChipMap[String(item.status)] || { label: "未知", color: "warning" as const }
         return (
           <Chip
             className="capitalize"
@@ -194,13 +277,27 @@ export default function DepartmentManagePage() {
   }
 
   return (
-    <div className="w-full p-4 space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">部门管理</h1>
-        <Button color="primary" size="md">
-          新增部门
-        </Button>
-      </div>
+    <div className="space-y-5 p-5">
+      <section className="rounded-[28px] border border-white/70 bg-[linear-gradient(135deg,_rgba(14,165,233,0.12),_rgba(255,255,255,0.95)_45%,_rgba(16,185,129,0.12))] p-6 shadow-[0_25px_70px_-45px_rgba(15,23,42,0.45)]">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+              <Sparkles className="size-3.5" />
+              Platform Module
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-900">部门管理</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600">管理系统内的组织架构、层级划分与关键部门联系信息。</p>
+          </div>
+          <Button
+            color="primary"
+            startContent={<Plus className="size-4" />}
+            className="bg-sky-600 text-white shadow-lg shadow-sky-100"
+            onPress={handleCreate}
+          >
+            新增部门
+          </Button>
+        </div>
+      </section>
 
       <Search
         fields={searchConfig}
@@ -211,7 +308,7 @@ export default function DepartmentManagePage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
         <CustomTable
           columns={columns}
-          data={departmentData}
+          data={flattenedTableData}
           renderCell={renderCell}
           rowKey="id"
           ariaLabel="部门列表"
@@ -227,6 +324,55 @@ export default function DepartmentManagePage() {
           onPageSizeChange={handlePageSizeChange}
         />
       </div>
+
+      <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen} size="3xl" scrollBehavior="inside">
+        <ModalContent>
+          <ModalHeader>{editingDept ? "编辑部门" : "新增部门"}</ModalHeader>
+          <ModalBody className="grid gap-4 md:grid-cols-2">
+            <Input label="部门名称" value={formState.name} onChange={(e) => setFormState(prev => ({ ...prev, name: e.target.value }))} />
+            <Input label="部门编码" value={formState.code} onChange={(e) => setFormState(prev => ({ ...prev, code: e.target.value }))} />
+            <Input label="负责人" value={formState.leader} onChange={(e) => setFormState(prev => ({ ...prev, leader: e.target.value }))} />
+            <Input label="联系电话" value={formState.phone} onChange={(e) => setFormState(prev => ({ ...prev, phone: e.target.value }))} />
+            <Input label="邮箱" value={formState.email} onChange={(e) => setFormState(prev => ({ ...prev, email: e.target.value }))} />
+            <Input label="地址" value={formState.address} onChange={(e) => setFormState(prev => ({ ...prev, address: e.target.value }))} />
+            <Select
+              label="上级部门"
+              selectedKeys={formState.parentId ? [String(formState.parentId)] : []}
+              onSelectionChange={(keys) => {
+                const parentId = Array.from(keys)[0]
+                setFormState((prev) => ({
+                  ...prev,
+                  parentId: parentId ? Number(parentId) : (null as any),
+                }))
+              }}
+            >
+              {[
+                <SelectItem key="none">无（作为顶级部门）</SelectItem>,
+                ...flattenedDeptOptions.map((option) => (
+                  <SelectItem key={String(option.id)}>
+                    {"\u00A0\u00A0\u00A0\u00A0".repeat(option.depth)}├ {option.name}
+                  </SelectItem>
+                ))
+              ]}
+            </Select>
+            <Input type="number" label="排序" value={String(formState.sortNumber || 0)} onChange={(e) => setFormState(prev => ({ ...prev, sortNumber: Number(e.target.value) }))} />
+            <Select
+              label="状态"
+              selectedKeys={[String(formState.status ?? 0)]}
+              onSelectionChange={(keys) => setFormState(prev => ({ ...prev, status: Number(Array.from(keys)[0] || 0) }))}
+            >
+              {systemStatusOptions.map((opt) => (
+                <SelectItem key={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </Select>
+            <Textarea className="md:col-span-2" label="描述" minRows={3} value={formState.describe} onChange={(e) => setFormState(prev => ({ ...prev, describe: e.target.value }))} />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={() => setIsModalOpen(false)}>取消</Button>
+            <Button color="primary" onPress={handleSubmit}>保存</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

@@ -28,6 +28,19 @@ export interface RoleQueryParams {
   status?: string
 }
 
+export interface RoleMenuItem {
+  id: number
+  name: string
+  code?: string
+  parentId?: number | null
+  sortNumber?: number
+  type?: number
+  category?: number
+  path?: string
+  status?: number
+  children?: RoleMenuItem[]
+}
+
 export const roleApi = {
   async getRoles(params: RoleQueryParams): Promise<RoleListResponse> {
     const response = await apiClient.get('/sys/role', { params })
@@ -53,5 +66,14 @@ export const roleApi = {
 
   async batchDelete(ids: number[]): Promise<void> {
     await apiClient.delete('/sys/role/batch/delete', { data: { ids } })
+  },
+
+  async getRoleMenus(id: number): Promise<RoleMenuItem[]> {
+    const response = await apiClient.get(`/sys/role/${id}/menus`)
+    return response.data
+  },
+
+  async assignRoleMenus(id: number, menuIds: number[]): Promise<void> {
+    await apiClient.post(`/sys/role/${id}/menus`, { menuIds })
   }
 }

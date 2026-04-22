@@ -15,7 +15,9 @@ import {
   SelectItem,
   Switch,
   Textarea,
+  DatePicker,
 } from "@heroui/react"
+import { parseAbsoluteToLocal } from "@internationalized/date"
 import { Plus, SearchIcon, Sparkles, UserPlus, Users } from "lucide-react"
 import { FileUploadField } from "../components/file-upload-field"
 import { RichTextEditor } from "../components/rich-text-editor"
@@ -95,6 +97,49 @@ function normalizeDateInput(value?: string | null) {
   return value ? value.slice(0, 16) : ""
 }
 
+function stripHtml(value?: string | null) {
+  if (!value) {
+    return ""
+  }
+
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function getTablePreview(item: BusinessContentItem) {
+  const candidates = [
+    stripHtml(item.summary),
+    stripHtml(item.content),
+    stripHtml(item.tags),
+    stripHtml(item.source),
+    stripHtml(item.author),
+    stripHtml(item.externalUrl),
+    stripHtml(item.mobile),
+  ]
+
+  return candidates.find(Boolean) || "-"
+}
+
+function toDatePickerValue(value?: string | null) {
+  return value ? (parseAbsoluteToLocal(new Date(String(value)).toISOString()) as any) : null
+}
+
+function toDatePickerIsoString(value: any) {
+  if (!value) {
+    return ""
+  }
+
+  return typeof value.toDate === "function"
+    ? value.toDate().toISOString()
+    : new Date(String(value)).toISOString()
+}
+
 export default function BusinessCategoryPage({
   params,
 }: {
@@ -171,6 +216,14 @@ export default function BusinessCategoryPage({
     { name: "操作", uid: "actions", align: "center" },
   ]
 
+  const secondaryOptionLabelMap = useMemo(
+    () =>
+      Object.fromEntries(
+        (categoryConfig?.secondaryOptions || []).map((option) => [option.value, option.label]),
+      ) as Record<string, string>,
+    [categoryConfig?.secondaryOptions],
+  )
+
   if (!categoryConfig) {
     return (
       <div className="p-6">
@@ -225,14 +278,15 @@ export default function BusinessCategoryPage({
     setIsModalOpen(true)
   }
 
-  const openEditModal = (item: BusinessContentItem) => {
-    setEditingItem(item)
+  const openEditModal = async (item: BusinessContentItem) => {
+    const detail = await contentApi.getItem(item.id, category)
+    setEditingItem(detail)
     setFormState({
-      ...item,
-      publishedAt: normalizeDateInput(item.publishedAt),
-      startTime: normalizeDateInput(item.startTime),
-      endTime: normalizeDateInput(item.endTime),
-      birthday: normalizeDateInput(item.birthday),
+      ...detail,
+      publishedAt: normalizeDateInput(detail.publishedAt),
+      startTime: normalizeDateInput(detail.startTime),
+      endTime: normalizeDateInput(detail.endTime),
+      birthday: normalizeDateInput(detail.birthday),
     })
     setIsModalOpen(true)
   }
@@ -339,16 +393,6 @@ export default function BusinessCategoryPage({
     await fetchList()
   }
 
-  const handleAssignAll = async (item: BusinessContentItem) => {
-    await contentApi.assignAllMerchantUsers(item.id)
-    await fetchList()
-  }
-
-  const handleRevokeAll = async (item: BusinessContentItem) => {
-    await contentApi.revokeAllMerchantUsers(item.id)
-    await fetchList()
-  }
-
   const renderCell = (item: BusinessContentItem, columnKey: string) => {
     switch (columnKey) {
       case "title":
@@ -361,9 +405,11 @@ export default function BusinessCategoryPage({
       case "summary":
         return (
           <p className="max-w-[340px] truncate text-sm text-slate-500">
-            {item.summary || item.content || "-"}
+            {getTablePreview(item)}
           </p>
         )
+      case "subTitle":
+        return secondaryOptionLabelMap[item.subTitle || ""] || item.subTitle || "-"
       case "status":
         return (
           <button onClick={() => handleStatusToggle(item)} className="cursor-pointer">
@@ -392,16 +438,6 @@ export default function BusinessCategoryPage({
               >
                 分配用户
               </Button>
-            ) : null}
-            {category === "service-platform" ? (
-              <>
-                <Button size="sm" variant="flat" onPress={() => handleAssignAll(item)}>
-                  一键分配
-                </Button>
-                <Button size="sm" variant="flat" onPress={() => handleRevokeAll(item)}>
-                  一键撤销
-                </Button>
-              </>
             ) : null}
             <Button size="sm" variant="flat" onPress={() => openEditModal(item)}>
               编辑
@@ -478,6 +514,28 @@ export default function BusinessCategoryPage({
             <SelectItem key={option.value}>{option.label}</SelectItem>
           ))}
         </Select>
+      )
+    }
+
+    if (field.type === "datetime-local") {
+      return (
+        <DatePicker
+          key={field.key}
+          label={field.label}
+          value={toDatePickerValue(String(value ?? ""))}
+          onChange={(nextValue: any) => {
+            if (nextValue) {
+              setFormState((prev) => ({
+                ...prev,
+                [field.key]: toDatePickerIsoString(nextValue),
+              }))
+            } else {
+              setFormState((prev) => ({ ...prev, [field.key]: "" }))
+            }
+          }}
+          showMonthAndYearPickers
+          granularity="minute"
+        />
       )
     }
 
@@ -577,13 +635,28 @@ export default function BusinessCategoryPage({
               onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
             />
             {categoryConfig.secondaryLabel ? (
-              <Input
-                label={categoryConfig.secondaryLabel}
-                value={formState.subTitle || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, subTitle: e.target.value }))
-                }
-              />
+              categoryConfig.secondaryOptions?.length ? (
+                <Select
+                  label={categoryConfig.secondaryLabel}
+                  selectedKeys={formState.subTitle ? [String(formState.subTitle)] : []}
+                  onSelectionChange={(keys) => {
+                    const nextValue = Array.from(keys)[0]
+                    setFormState((prev) => ({ ...prev, subTitle: String(nextValue ?? "") }))
+                  }}
+                >
+                  {categoryConfig.secondaryOptions.map((option) => (
+                    <SelectItem key={option.value}>{option.label}</SelectItem>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  label={categoryConfig.secondaryLabel}
+                  value={formState.subTitle || ""}
+                  onChange={(e) =>
+                    setFormState((prev) => ({ ...prev, subTitle: e.target.value }))
+                  }
+                />
+              )
             ) : null}
             {categoryConfig.coverImageLabel ? (
               <FileUploadField
@@ -634,13 +707,21 @@ export default function BusinessCategoryPage({
               />
             ) : null}
             {categoryConfig.publishedAtLabel ? (
-              <Input
+              <DatePicker
                 label={categoryConfig.publishedAtLabel}
-                type="datetime-local"
-                value={formState.publishedAt || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, publishedAt: e.target.value }))
-                }
+                value={toDatePickerValue(formState.publishedAt)}
+                onChange={(value: any) => {
+                  if (value) {
+                    setFormState((prev) => ({
+                      ...prev,
+                      publishedAt: toDatePickerIsoString(value),
+                    }))
+                  } else {
+                    setFormState((prev) => ({ ...prev, publishedAt: "" }))
+                  }
+                }}
+                showMonthAndYearPickers
+                granularity="minute"
               />
             ) : null}
             {categoryConfig.enableStatus ? (

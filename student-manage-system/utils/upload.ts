@@ -1,14 +1,21 @@
 import Cookies from "js-cookie"
 
-const getBackendUrl = () => process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8888"
-const getFilePublicPrefix = () => process.env.NEXT_PUBLIC_FILE_PUBLIC_PREFIX || "/file-storage"
-const getLegacyPreviewPath = () => process.env.NEXT_PUBLIC_LEGACY_FILE_PREVIEW_PATH || "/files/legacy-preview"
+const getBackendUrl = () =>
+  (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8888").replace(/\/+$/, "")
+const getBackendApiUrl = () => {
+  const backendUrl = getBackendUrl()
+  return backendUrl.endsWith("/api") ? backendUrl : `${backendUrl}/api`
+}
+const getFilePublicPrefix = () => process.env.NEXT_PUBLIC_FILE_PUBLIC_PREFIX || "/image"
+const getLegacyPreviewPath = () =>
+  process.env.NEXT_PUBLIC_LEGACY_FILE_PREVIEW_PATH || "/api/files/legacy-preview"
 
 export interface UploadedFileResult {
   originalName: string
   fileName: string
   mimeType: string
   size: number
+  filePath: string
   storagePath: string
   url: string
   previewUrl: string
@@ -26,15 +33,19 @@ export function resolveAssetUrl(value?: string | null) {
   }
 
   if (value.startsWith("/files/")) {
-    return `${getBackendUrl()}${value}`
-  }
-
-  if (value.startsWith("/uploads/") || value.startsWith(getFilePublicPrefix())) {
-    return `${getBackendUrl()}${value}`
+    return `${getBackendApiUrl()}${value}`
   }
 
   if (value.startsWith("/image/")) {
-    return `${getBackendUrl()}${getLegacyPreviewPath()}?path=${encodeURIComponent(value)}`
+    return value
+  }
+
+  if (value.startsWith("/uploads/")) {
+    return `${getBackendUrl()}${value}`
+  }
+
+  if (value.startsWith(getFilePublicPrefix())) {
+    return value
   }
 
   if (value.startsWith("/home/")) {
@@ -54,7 +65,7 @@ export async function uploadFile(file: File, folder = "common"): Promise<Uploade
   formData.append("folder", folder)
 
   const accessToken = Cookies.get("access_token")
-  const response = await fetch(`${getBackendUrl()}/files/upload`, {
+  const response = await fetch(`${getBackendApiUrl()}/files/upload`, {
     method: "POST",
     body: formData,
     credentials: "include",

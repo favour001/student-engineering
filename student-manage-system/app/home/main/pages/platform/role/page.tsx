@@ -7,6 +7,7 @@ import { CustomTable, ColumnConfig } from "../../components/table"
 import { Chip, Tooltip, Button } from "@heroui/react"
 import { EyeIcon, DeleteIcon, EditIcon } from "../../components/table/components/icon"
 import { roleApi, RoleData, RoleQueryParams } from "./services/roleApi"
+import { systemStatusChipMap, systemStatusSearchOptions } from "../../../lib/enums"
 
 const searchConfig: SearchFieldConfig[] = [
   {
@@ -25,11 +26,7 @@ const searchConfig: SearchFieldConfig[] = [
     name: "status",
     label: "状态",
     type: "select",
-    options: [
-      { label: "全部", value: "" },
-      { label: "正常", value: "0" },
-      { label: "禁用", value: "1" }
-    ]
+    options: systemStatusSearchOptions
   }
 ]
 
@@ -42,11 +39,6 @@ const columns: ColumnConfig[] = [
   { name: "创建时间", uid: "createTime", sortable: true },
   { name: "操作", uid: "actions", align: "center" }
 ]
-
-const statusMap: Record<number, { label: string; color: "success" | "danger" | "warning" }> = {
-  0: { label: "正常", color: "success" },
-  1: { label: "禁用", color: "danger" }
-}
 
 export default function RoleManagePage() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -130,7 +122,7 @@ export default function RoleManagePage() {
 
     switch (columnKey) {
       case "status":
-        const statusInfo = statusMap[item.status] || { label: "未知", color: "warning" as const }
+        const statusInfo = systemStatusChipMap[String(item.status)] || { label: "未知", color: "warning" as const }
         return (
           <Chip
             className="capitalize"

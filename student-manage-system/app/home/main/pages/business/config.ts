@@ -1,3 +1,26 @@
+import {
+  activityStatusLabelMap,
+  activityStatusOptions,
+  auditStatusLabelMap,
+  auditStatusOptions,
+  articleTypeLabelMap,
+  articleTypeOptions,
+  cardReceiveStatusLabelMap,
+  cardReceiveStatusOptions,
+  cardTypeOptions,
+  cardTypeLabelMap,
+  cardUseStatusLabelMap,
+  cardUseStatusOptions,
+  genderLabelMap,
+  genderOptions,
+  tweetTypeOptions,
+  tweetTypeLabelMap,
+  welfareDiscountTypeLabelMap,
+  welfareDiscountTypeOptions,
+  yesNoLabelMap,
+  yesNoOptions,
+} from "../../lib/enums"
+
 export type BusinessExtraFieldOption = {
   label: string
   value: string
@@ -55,15 +78,18 @@ export interface BusinessCategoryConfig {
   subtitle: string
   primaryLabel: string
   secondaryLabel?: string
+  secondaryOptions?: BusinessExtraFieldOption[]
   summaryLabel?: string
+  summaryOptions?: BusinessExtraFieldOption[]
   contentLabel?: string
   coverImageLabel?: string
   externalUrlLabel?: string
   sourceLabel?: string
+  sourceOptions?: BusinessExtraFieldOption[]
   authorLabel?: string
   publishedAtLabel?: string
   enableStatus?: boolean
-  summaryInputType?: "textarea" | "richtext"
+  summaryInputType?: "textarea" | "richtext" | "select"
   contentInputType?: "textarea" | "richtext"
   extraFields?: BusinessExtraField[]
   searchFields?: Array<{
@@ -81,10 +107,25 @@ export interface BusinessCategoryConfig {
   }
 }
 
-const yesNoOptions = [
-  { label: "是", value: "1" },
-  { label: "否", value: "0" },
-]
+export const businessFieldOptionsMap: Partial<Record<BusinessExtraField["key"], BusinessExtraFieldOption[]>> = {
+  gender: genderOptions,
+  vipFlag: [{ label: "请选择", value: "" }, ...yesNoOptions],
+  auditStatus: auditStatusOptions,
+  useStatus: cardUseStatusOptions,
+}
+
+export const businessFieldLabelMap: Record<string, Record<string, string>> = {
+  gender: genderLabelMap,
+  vipFlag: yesNoLabelMap,
+  auditStatus: auditStatusLabelMap,
+  useStatus: cardUseStatusLabelMap,
+  cardType: cardTypeLabelMap,
+  cardReceiveStatus: cardReceiveStatusLabelMap,
+  discountType: welfareDiscountTypeLabelMap,
+  activityStatus: activityStatusLabelMap,
+  tweetType: tweetTypeLabelMap,
+  articleType: articleTypeLabelMap,
+}
 
 export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> = {
   activity: {
@@ -92,17 +133,23 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     subtitle: "维护协会活动信息、报名规则和联系人信息。",
     primaryLabel: "活动标题",
     summaryLabel: "活动内容",
+    summaryInputType: "richtext",
     coverImageLabel: "封面图片",
-    sourceLabel: "标签名",
-    authorLabel: "联系人姓名",
+    sourceLabel: "标签",
+    authorLabel: "活动联系人",
     extraFields: [
       { key: "startTime", label: "开始时间", type: "datetime-local" },
       { key: "endTime", label: "结束时间", type: "datetime-local" },
       { key: "address", label: "活动地址" },
       { key: "money", label: "活动金额", type: "number" },
-      { key: "contactMobile", label: "联系人手机" },
-      { key: "quantity", label: "报名限额", type: "number" },
-      { key: "extraType", label: "报名类型" },
+      { key: "contactMobile", label: "联系方式" },
+      {
+        key: "extraType",
+        label: "活动状态",
+        type: "select",
+        options: activityStatusOptions,
+      },
+      { key: "quantity", label: "报名名额", type: "number" },
     ],
   },
   sign: {
@@ -129,11 +176,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
         key: "gender",
         label: "性别",
         type: "select",
-        options: [
-          { label: "请选择", value: "" },
-          { label: "男", value: "1" },
-          { label: "女", value: "2" },
-        ],
+        options: genderOptions,
       },
       { key: "studySchool", label: "毕业院校" },
       { key: "studyCountry", label: "留学地区" },
@@ -172,6 +215,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     subtitle: "统一维护长内容文章与资讯专题。",
     primaryLabel: "文章标题",
     secondaryLabel: "文章类型",
+    secondaryOptions: articleTypeOptions,
     summaryLabel: "备注说明",
     contentLabel: "文章内容",
     contentInputType: "richtext",
@@ -182,6 +226,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     subtitle: "维护留创顺德专题内容与展示。",
     primaryLabel: "专题标题",
     secondaryLabel: "专题类型",
+    secondaryOptions: tweetTypeOptions,
     contentLabel: "专题内容",
     contentInputType: "richtext",
     coverImageLabel: "专题图片",
@@ -226,16 +271,11 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
   },
   "service-platform": {
     title: "留学服务平台",
-    subtitle: "维护留学服务商家内容，并支持把服务分配给微信用户。",
+    subtitle: "维护留学服务商家内容，默认面向所有用户公开展示。",
     primaryLabel: "平台标题",
     contentLabel: "平台内容",
+    contentInputType: "richtext",
     coverImageLabel: "封面图片",
-    assignment: {
-      type: "merchant",
-      title: "分配服务用户",
-      assignAll: true,
-      revokeAll: true,
-    },
   },
   "wechat-user": {
     title: "微信用户信息",
@@ -243,7 +283,9 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     primaryLabel: "用户昵称",
     secondaryLabel: "微信昵称",
     summaryLabel: "会员简介",
+    summaryInputType: "richtext",
     contentLabel: "档案信息",
+    contentInputType: "richtext",
     coverImageLabel: "头像地址",
     sourceLabel: "手机号",
     authorLabel: "微信 OpenID",
@@ -277,12 +319,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
         name: "auditStatus",
         label: "审核状态",
         type: "select",
-        options: [
-          { label: "全部", value: "" },
-          { label: "待审核", value: "0" },
-          { label: "已通过", value: "1" },
-          { label: "已拒绝", value: "2" },
-        ],
+        options: [{ label: "全部", value: "" }, ...auditStatusOptions.filter((item) => item.value !== "")],
       },
     ],
     extraFields: [
@@ -296,18 +333,14 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
         key: "gender",
         label: "性别",
         type: "select",
-        options: [
-          { label: "请选择", value: "" },
-          { label: "男", value: "1" },
-          { label: "女", value: "2" },
-        ],
+        options: businessFieldOptionsMap.gender,
       },
       { key: "companyName", label: "单位名称" },
       {
         key: "vipFlag",
         label: "是否会员",
         type: "select",
-        options: [{ label: "请选择", value: "" }, ...yesNoOptions],
+        options: businessFieldOptionsMap.vipFlag,
       },
       { key: "companyPost", label: "单位职位" },
       { key: "companyAddress", label: "单位地址" },
@@ -315,12 +348,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
         key: "auditStatus",
         label: "审核状态",
         type: "select",
-        options: [
-          { label: "请选择", value: "" },
-          { label: "待审核", value: "0" },
-          { label: "已通过", value: "1" },
-          { label: "已拒绝", value: "2" },
-        ],
+        options: businessFieldOptionsMap.auditStatus,
       },
       { key: "socialPost", label: "社会职务" },
       { key: "email", label: "邮箱" },
@@ -332,9 +360,9 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     title: "会员卡管理",
     subtitle: "维护会员卡内容、权益介绍和使用时间范围。",
     primaryLabel: "会员卡标题",
-    summaryLabel: "描述",
-    contentLabel: "会员描述",
-    coverImageLabel: "会员卡图片",
+    summaryLabel: "会员卡描述",
+    summaryInputType: "richtext",
+    coverImageLabel: "图片地址",
     assignment: {
       type: "card",
       title: "分配会员卡",
@@ -349,17 +377,22 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     title: "福利管理",
     subtitle: "维护福利券信息、金额折扣和使用规则。",
     primaryLabel: "福利标题",
-    summaryLabel: "福利描述",
-    contentLabel: "使用规则",
+    summaryLabel: "描述",
+    contentLabel: "内容",
     contentInputType: "richtext",
-    coverImageLabel: "福利图片",
+    coverImageLabel: "图片地址",
     assignment: {
       type: "card",
       title: "分配福利券",
     },
     extraFields: [
       { key: "money", label: "金额", type: "number" },
-      { key: "discountType", label: "折扣方式" },
+      {
+        key: "discountType",
+        label: "折扣方式",
+        type: "select",
+        options: [{ label: "请选择", value: "" }, ...welfareDiscountTypeOptions],
+      },
       { key: "discount", label: "折扣值" },
       { key: "startTime", label: "开始时间", type: "datetime-local" },
       { key: "endTime", label: "结束时间", type: "datetime-local" },
@@ -371,7 +404,17 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
     primaryLabel: "卡券ID",
     secondaryLabel: "用户ID",
     summaryLabel: "卡券类型",
-    sourceLabel: "状态",
-    extraFields: [{ key: "useStatus", label: "使用状态" }],
+    summaryInputType: "select",
+    summaryOptions: cardTypeOptions,
+    sourceLabel: "领取状态",
+    sourceOptions: cardReceiveStatusOptions,
+    extraFields: [
+      {
+        key: "useStatus",
+        label: "使用状态",
+        type: "select",
+        options: businessFieldOptionsMap.useStatus,
+      },
+    ],
   },
 }

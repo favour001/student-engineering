@@ -1,10 +1,10 @@
 import {
+  Body,
   BadRequestException,
   Controller,
   Get,
   Post,
   Query,
-  Redirect,
   Res,
   UploadedFile,
   UseInterceptors,
@@ -16,17 +16,10 @@ import { Response } from 'express';
 import * as path from 'path';
 import { AllowNoPermission } from '../decorators/permission.decorator';
 import { AllowNoToken } from '../decorators/token.decorator';
-import { FilesService } from './files.service';
+import { buildStoredFileName, createTargetFolder, FilesService } from './files.service';
+import { UploadedDiskFile } from './files.types';
 
-type UploadedDiskFile = {
-  originalname: string;
-  filename: string;
-  mimetype: string;
-  size: number;
-  destination: string;
-};
-
-function createStorage(filesService: FilesService) {
+function createStorage() {
   return diskStorage({
     destination: (req, _file, callback) => {
       const folder =
@@ -35,11 +28,11 @@ function createStorage(filesService: FilesService) {
           : typeof req.query?.folder === 'string'
             ? req.query.folder
             : 'common';
-      const { absoluteDir } = filesService.createTargetFolder(folder);
+      const { absoluteDir } = createTargetFolder(folder);
       callback(null, absoluteDir);
     },
     filename: (_req, file, callback) => {
-      callback(null, filesService.buildStoredFileName(file.originalname));
+      callback(null, buildStoredFileName(file.originalname));
     },
   });
 }
@@ -64,7 +57,7 @@ export class FilesController {
   })
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: createStorage(new FilesService()),
+      storage: createStorage(),
       fileFilter: (_req, file, callback) => {
         if (!file.originalname) {
           callback(new BadRequestException('请选择要上传的文件'), false);
@@ -79,6 +72,7 @@ export class FilesController {
   )
   upload(
     @UploadedFile() file: UploadedDiskFile,
+    @Body('folder') bodyFolder?: string,
     @Query('folder') queryFolder?: string,
   ) {
     if (!file) {
@@ -93,7 +87,7 @@ export class FilesController {
       .join('/')
       .replace(/\/+/g, '/');
 
-    return this.filesService.buildFileResponse(file, filePath);
+    return this.filesService.saveUploadedFile(file, filePath, bodyFolder || queryFolder);
   }
 
   @Get('preview')
@@ -119,12 +113,51 @@ export class FilesController {
   @Get('legacy-preview')
   @AllowNoToken()
   @AllowNoPermission()
-  @Redirect()
-  @ApiOperation({ summary: '跳转到历史服务器文件预览地址' })
+  @ApiOperation({ summary: '代理读取历史服务器文件预览地址' })
   @ApiQuery({ name: 'path', required: true, description: '旧系统图片路径，如 /image/common/... 或 /home/project/...' })
-  legacyPreview(@Query('path') filePath: string) {
-    return {
-      url: this.filesService.buildLegacyDownloadUrl(filePath),
-    };
+  legacyPreview(@Query('path') filePath: string, @Res() res: Response) {
+    const { requestImpl, requestOptions, targetUrl } = this.filesService.createLegacyAssetRequest(filePath);
+    
+    console.log(`[Proxy] legacy-preview: ${filePath} -> ${targetUrl.href}`);
+
+    const proxyRequest = requestImpl.request(requestOptions, (proxyResponse) => {
+      const statusCode = proxyResponse.statusCode ?? 502;
+      res.status(statusCode);
+
+      const contentType = proxyResponse.headers['content-type'];
+      if (contentType) {
+        res.setHeader('Content-Type', contentType);
+      }
+
+      const contentLength = proxyResponse.headers['content-length'];
+      if (contentLength) {
+        res.setHeader('Content-Length', contentLength);
+      }
+
+      const cacheControl = proxyResponse.headers['cache-control'];
+      if (cacheControl) {
+        res.setHeader('Cache-Control', cacheControl);
+      }
+
+      proxyResponse.pipe(res);
+    });
+
+    proxyRequest.on('timeout', () => {
+      proxyRequest.destroy(new Error('读取历史图片超时'));
+    });
+
+    proxyRequest.on('error', (error) => {
+      if (!res.headersSent) {
+        res.status(502).json({
+          message: '读取历史图片失败',
+          error: error.message,
+        });
+        return;
+      }
+
+      res.end();
+    });
+
+    proxyRequest.end();
   }
 }

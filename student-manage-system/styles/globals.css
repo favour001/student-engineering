@@ -243,3 +243,36 @@ body {
   line-height: 1.8;
   color: rgb(15 23 42);
 }
+
+.rich-text-editor-shell .ql-toolbar.ql-snow {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.rich-text-editor-shell {
+  position: relative;
+  height: var(--editor-height, 280px);
+  min-height: 220px;
+  overflow: hidden;
+}
+
+.rich-text-editor-shell .quill {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rich-text-editor-shell .ql-container.ql-snow {
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.rich-text-editor-shell .ql-editor {
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1.1rem 1.2rem 2rem;
+}

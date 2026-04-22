@@ -4,9 +4,11 @@ import React, { useState, useEffect } from "react"
 import { Search, SearchFieldConfig } from "../../components/search"
 import { Page } from "../../components/page"
 import { CustomTable, ColumnConfig } from "../../components/table"
-import { Chip, Tooltip, Button } from "@heroui/react"
+import { Chip, Tooltip, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Select, SelectItem, Textarea } from "@heroui/react"
 import { EyeIcon, DeleteIcon, EditIcon } from "../../components/table/components/icon"
+import { Sparkles, Plus } from "lucide-react"
 import { postApi, PostData, PostQueryParams } from "./services/postApi"
+import { systemStatusChipMap, systemStatusOptions, systemStatusSearchOptions } from "../../../lib/enums"
 
 const searchConfig: SearchFieldConfig[] = [
   {
@@ -25,11 +27,7 @@ const searchConfig: SearchFieldConfig[] = [
     name: "status",
     label: "状态",
     type: "select",
-    options: [
-      { label: "全部", value: "" },
-      { label: "正常", value: "0" },
-      { label: "禁用", value: "1" }
-    ]
+    options: systemStatusSearchOptions
   }
 ]
 
@@ -43,11 +41,6 @@ const columns: ColumnConfig[] = [
   { name: "操作", uid: "actions", align: "center" }
 ]
 
-const statusMap: Record<number, { label: string; color: "success" | "danger" | "warning" }> = {
-  0: { label: "正常", color: "success" },
-  1: { label: "禁用", color: "danger" }
-}
-
 export default function PostManagePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -55,6 +48,15 @@ export default function PostManagePage() {
   const [loading, setLoading] = useState(false)
   const [postData, setPostData] = useState<PostData[]>([])
   const [searchParams, setSearchParams] = useState<Record<string, any>>({})
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingPost, setEditingPost] = useState<PostData | null>(null)
+  const [formState, setFormState] = useState<Partial<PostData>>({
+    name: "",
+    code: "",
+    sortNumber: 0,
+    status: 0,
+    describe: "",
+  })
 
   const fetchPosts = async (params: PostQueryParams = {}) => {
     setLoading(true)
@@ -109,7 +111,43 @@ export default function PostManagePage() {
   }
 
   const handleEdit = (post: PostData) => {
-    console.log("编辑岗位:", post)
+    setEditingPost(post)
+    setFormState({ ...post })
+    setIsModalOpen(true)
+  }
+
+  const handleCreate = () => {
+    setEditingPost(null)
+    setFormState({
+      name: "",
+      code: "",
+      sortNumber: 0,
+      status: 0,
+      describe: "",
+    })
+    setIsModalOpen(true)
+  }
+
+  const handleSubmit = async () => {
+    if (!formState.name || !formState.code) {
+      alert("请填写岗位名称和岗位编码")
+      return
+    }
+
+    const payload = {
+      ...formState,
+      sortNumber: Number(formState.sortNumber || 0),
+      status: Number(formState.status || 0),
+    }
+
+    if (editingPost) {
+      await postApi.updatePost(editingPost.id, payload)
+    } else {
+      await postApi.createPost(payload)
+    }
+
+    setIsModalOpen(false)
+    await fetchPosts(searchParams)
   }
 
   const handleDelete = async (post: PostData) => {
@@ -130,7 +168,7 @@ export default function PostManagePage() {
 
     switch (columnKey) {
       case "status":
-        const statusInfo = statusMap[item.status] || { label: "未知", color: "warning" as const }
+        const statusInfo = systemStatusChipMap[String(item.status)] || { label: "未知", color: "warning" as const }
         return (
           <Chip
             className="capitalize"
@@ -153,7 +191,7 @@ export default function PostManagePage() {
         return (
           <div className="relative flex items-center gap-2 justify-center">
             <Tooltip content="查看详情">
-              <span 
+              <span
                 className="text-lg text-default-400 cursor-pointer active:opacity-50"
                 onClick={() => handleView(item)}
               >
@@ -161,7 +199,7 @@ export default function PostManagePage() {
               </span>
             </Tooltip>
             <Tooltip content="编辑">
-              <span 
+              <span
                 className="text-lg text-default-400 cursor-pointer active:opacity-50"
                 onClick={() => handleEdit(item)}
               >
@@ -169,7 +207,7 @@ export default function PostManagePage() {
               </span>
             </Tooltip>
             <Tooltip color="danger" content="删除">
-              <span 
+              <span
                 className="text-lg text-danger cursor-pointer active:opacity-50"
                 onClick={() => handleDelete(item)}
               >
@@ -188,7 +226,7 @@ export default function PostManagePage() {
     <div className="w-full p-4 space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">岗位管理</h1>
-        <Button color="primary" size="md">
+        <Button color="primary" size="md" onPress={handleCreate}>
           新增岗位
         </Button>
       </div>
@@ -218,6 +256,31 @@ export default function PostManagePage() {
           onPageSizeChange={handlePageSizeChange}
         />
       </div>
+
+      <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen} size="2xl" scrollBehavior="inside">
+        <ModalContent>
+          <ModalHeader>{editingPost ? "编辑岗位" : "新增岗位"}</ModalHeader>
+          <ModalBody className="grid gap-4 md:grid-cols-2">
+            <Input label="岗位名称" value={formState.name || ""} onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))} />
+            <Input label="岗位编码" value={formState.code || ""} onChange={(e) => setFormState((prev) => ({ ...prev, code: e.target.value }))} />
+            <Input label="排序" type="number" value={String(formState.sortNumber ?? 0)} onChange={(e) => setFormState((prev) => ({ ...prev, sortNumber: Number(e.target.value || 0) }))} />
+            <Select
+              label="状态"
+              selectedKeys={[String(formState.status ?? 0)]}
+              onSelectionChange={(keys) => setFormState((prev) => ({ ...prev, status: Number(Array.from(keys)[0] || 0) }))}
+            >
+              {systemStatusOptions.map((option) => (
+                <SelectItem key={option.value}>{option.label}</SelectItem>
+              ))}
+            </Select>
+            <Textarea className="md:col-span-2" label="描述" minRows={4} value={formState.describe || ""} onChange={(e) => setFormState((prev) => ({ ...prev, describe: e.target.value }))} />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={() => setIsModalOpen(false)}>取消</Button>
+            <Button color="primary" onPress={handleSubmit}>保存</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

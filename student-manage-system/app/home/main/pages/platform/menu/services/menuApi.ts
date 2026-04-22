@@ -48,6 +48,11 @@ export const menuApi = {
     return response.data
   },
 
+  async getAllMenus(): Promise<MenuData[]> {
+    const response = await apiClient.get('/sys/menu/list')
+    return response.data
+  },
+
   async createMenu(data: Partial<MenuData>): Promise<void> {
     await apiClient.post('/sys/menu', data)
   },
