@@ -49,7 +49,7 @@ export class CreateExtendedBizModuleTables1714000002000 implements MigrationInte
           { name: 'title', type: 'varchar', length: '200' },
           { name: 'avater_url', type: 'varchar', length: '500', isNullable: true },
           { name: 'releases', type: 'tinyint', default: 0 },
-          { name: 'feeld_id', type: 'varchar', length: '100', isNullable: true },
+          { name: 'feeld_id', type: 'varchar', length: '500', isNullable: true },
           { name: 'finder_user_name', type: 'varchar', length: '100', isNullable: true },
           { name: 'remark', type: 'text', isNullable: true },
           { name: 'create_time', type: 'datetime', default: 'CURRENT_TIMESTAMP' },

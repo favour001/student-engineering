@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { CheckCircle2, LoaderCircle, ShieldCheck } from "lucide-react"
+import { CheckCircle2, ShieldCheck } from "lucide-react"
 import { useLogin } from "../hooks/useLogin"
 
 export function LoginForm({
@@ -157,7 +157,6 @@ export function LoginForm({
                     <div className="flex flex-col items-center gap-5">
                         <div className="relative flex size-20 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top,#ffffff,#dbeafe)] shadow-[0_25px_80px_-35px_rgba(14,165,233,0.7)]">
                             <CheckCircle2 className="size-10 text-emerald-500" />
-                            <LoaderCircle className="absolute -right-1 -top-1 size-6 animate-spin text-sky-500" />
                         </div>
                         <div className="space-y-2">
                             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">

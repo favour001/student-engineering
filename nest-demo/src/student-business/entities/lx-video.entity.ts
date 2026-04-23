@@ -14,7 +14,7 @@ export class LxVideo {
   @Column({ type: 'tinyint', default: 0, comment: '发布状态 0发布 1不发布' })
   releases: number;
 
-  @Column({ type: 'varchar', name: 'feeld_id', length: 100, nullable: true, comment: '视频ID' })
+  @Column({ type: 'varchar', name: 'feeld_id', length: 500, nullable: true, comment: '视频ID' })
   feeldId?: string | null;
 
   @Column({ type: 'varchar', name: 'finder_user_name', length: 100, nullable: true, comment: '视频号ID' })

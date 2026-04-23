@@ -43,7 +43,6 @@ export const useLogin = () => {
       Cookies.set('userInfo', JSON.stringify(userInfo), getCookieOptions(7));
 
       setPhase('redirecting');
-      await new Promise((resolve) => setTimeout(resolve, 550));
       router.replace('/home');
       return loginData;
     } catch (err) {

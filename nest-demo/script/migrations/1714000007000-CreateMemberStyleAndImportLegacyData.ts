@@ -51,60 +51,6 @@ export class CreateMemberStyleAndImportLegacyData1714000007000
     }
 
     await queryRunner.query(`
-      INSERT INTO \`sys_post\` (
-        \`id\`, \`name\`, \`code\`, \`sort_number\`, \`status\`, \`describe\`,
-        \`create_by\`, \`create_time\`, \`update_by\`, \`update_time\`
-      )
-      SELECT
-        legacy.\`id\`,
-        legacy.\`post_name\`,
-        legacy.\`post_code\`,
-        legacy.\`post_sort\`,
-        CASE WHEN legacy.\`status\` = '0' THEN 0 ELSE 1 END,
-        NULLIF(legacy.\`remark\`, ''),
-        NULLIF(legacy.\`create_by\`, ''),
-        legacy.\`create_time\`,
-        NULLIF(legacy.\`update_by\`, ''),
-        legacy.\`update_time\`
-      FROM \`liuxie\`.\`sys_post\` legacy
-      WHERE NOT EXISTS (
-        SELECT 1
-        FROM \`sys_post\` current_post
-        WHERE current_post.\`code\` COLLATE utf8mb4_unicode_ci = legacy.\`post_code\` COLLATE utf8mb4_unicode_ci
-      )
-    `);
-
-    await queryRunner.query(`
-      INSERT INTO \`sys_department\` (
-        \`id\`, \`name\`, \`code\`, \`sort_number\`, \`leader\`, \`phone\`, \`email\`,
-        \`address\`, \`parent_id\`, \`status\`, \`describe\`,
-        \`create_by\`, \`create_time\`, \`update_by\`, \`update_time\`
-      )
-      SELECT
-        legacy.\`id\`,
-        legacy.\`dept_name\`,
-        CONCAT('legacy-dept-', legacy.\`id\`),
-        COALESCE(legacy.\`order_num\`, 0),
-        legacy.\`leader\`,
-        legacy.\`phone\`,
-        legacy.\`email\`,
-        NULL,
-        COALESCE(legacy.\`parent_id\`, 0),
-        CASE WHEN legacy.\`status\` = '0' THEN 0 ELSE 1 END,
-        NULL,
-        NULLIF(legacy.\`create_by\`, ''),
-        legacy.\`create_time\`,
-        NULLIF(legacy.\`update_by\`, ''),
-        legacy.\`update_time\`
-      FROM \`liuxie\`.\`sys_dept\` legacy
-      WHERE NOT EXISTS (
-        SELECT 1
-        FROM \`sys_department\` current_dept
-        WHERE current_dept.\`code\` COLLATE utf8mb4_unicode_ci = CONCAT('legacy-dept-', legacy.\`id\`) COLLATE utf8mb4_unicode_ci
-      )
-    `);
-
-    await queryRunner.query(`
       INSERT INTO \`lx_member_style\` (
         \`id\`, \`legacy_user_id\`, \`order_number\`, \`user_name\`, \`display_name\`,
         \`job_title\`, \`member_rank\`, \`joined_at\`, \`mobile\`, \`email\`, \`gender\`,
@@ -157,16 +103,6 @@ export class CreateMemberStyleAndImportLegacyData1714000007000
     await queryRunner.query(`
       DELETE FROM \`lx_member_style\`
       WHERE \`legacy_user_id\` IS NOT NULL
-    `);
-
-    await queryRunner.query(`
-      DELETE FROM \`sys_department\`
-      WHERE \`code\` LIKE 'legacy-dept-%'
-    `);
-
-    await queryRunner.query(`
-      DELETE FROM \`sys_post\`
-      WHERE \`id\` IN (SELECT legacy.\`id\` FROM \`liuxie\`.\`sys_post\` legacy)
     `);
 
     const hasMemberStyleTable = await queryRunner.hasTable('lx_member_style');

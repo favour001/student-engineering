@@ -5,6 +5,7 @@ const imageProxyTarget =
   "http://localhost:8888";
 
 const nextConfig = {
+  basePath: "/student-admin",
   async rewrites() {
     return [
       {
