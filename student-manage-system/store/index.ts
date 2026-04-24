@@ -1,27 +1,27 @@
-import { proxy } from 'valtio'
+import { proxy } from "valtio";
 
 export interface UserInfo {
-  id: number
-  userName: string
-  account: string
-  email?: string
-  phoneNumber?: string
-  profileImage?: string
+  id: number;
+  userName: string;
+  account: string;
+  email?: string;
+  phoneNumber?: string;
+  profileImage?: string;
 }
 
 export interface MenuItem {
-  id: number
-  name: string
-  code: string
-  type: number
-  category: number
-  sortNumber?: number
-  icon?: string
-  path?: string
-  component?: string
-  permission?: string
-  parentId?: number | null
-  children?: MenuItem[]
+  id: number;
+  name: string;
+  code: string;
+  type: number;
+  category: number;
+  sortNumber?: number;
+  icon?: string;
+  path?: string;
+  component?: string;
+  permission?: string;
+  parentId?: number | null;
+  children?: MenuItem[];
 }
 
 export interface AppState {
@@ -30,23 +30,23 @@ export interface AppState {
       uiDomain: {
         layout: {
           leftSidebar: {
-            logo: {}
-            userInfo: UserInfo | null
+            logo: {};
+            userInfo: UserInfo | null;
             menu: {
-              platform: MenuItem[]
-              project: MenuItem[]
-            }
-          }
+              platform: MenuItem[];
+              project: MenuItem[];
+            };
+          };
           rightSidebar: {
-            header: {}
-          }
-        }
-      }
-    }
+            header: {};
+          };
+        };
+      };
+    };
     login: {
-      userId: number | null
-    }
-  }
+      userId: number | null;
+    };
+  };
 }
 
 export const appStore = proxy<AppState>({
@@ -59,17 +59,17 @@ export const appStore = proxy<AppState>({
             userInfo: null,
             menu: {
               platform: [],
-              project: []
-            }
+              project: [],
+            },
           },
           rightSidebar: {
-            header: {}
-          }
-        }
-      }
+            header: {},
+          },
+        },
+      },
     },
     login: {
-      userId: null
-    }
-  }
-})
+      userId: null,
+    },
+  },
+});

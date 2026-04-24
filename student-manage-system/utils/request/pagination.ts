@@ -23,7 +23,9 @@ export const normalizePaginatedResponse = <T>(
   const total = payload?.meta?.total ?? list.length;
   const page = payload?.meta?.page ?? 1;
   const limit = payload?.meta?.limit ?? (list.length || 10);
-  const totalPages = payload?.meta?.totalPages ?? Math.max(1, Math.ceil(total / Math.max(limit, 1)));
+  const totalPages =
+    payload?.meta?.totalPages ??
+    Math.max(1, Math.ceil(total / Math.max(limit, 1)));
 
   return {
     list,

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ChevronRight,
@@ -6,23 +6,24 @@ import {
   Forward,
   MoreHorizontal,
   Trash2,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { MenuItem } from "@/store"
-import { renderMenuIcon } from "../utils/menuIcon"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { renderMenuIcon } from "../utils/menuIcon";
+
+import { MenuItem } from "@/store";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -34,35 +35,40 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-export function NavMenuProject({
-  projects,
-}: {
-  projects: MenuItem[]
-}) {
-  const { isMobile } = useSidebar()
-  const router = useRouter()
+export function NavMenuProject({ projects }: { projects: MenuItem[] }) {
+  const { isMobile } = useSidebar();
+  const router = useRouter();
 
   const handleMenuClick = (path?: string) => {
     if (path) {
-      router.push(path)
+      router.push(path);
     }
-  }
+  };
 
   if (!projects || projects.length === 0) {
-    return null
+    return null;
   }
 
   return (
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>业务管理</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
-          <Collapsible key={item.id} asChild className="group/collapsible" defaultOpen={item.children?.length ? true : false}>
+          <Collapsible
+            key={item.id}
+            asChild
+            className="group/collapsible"
+            defaultOpen={item.children?.length ? true : false}
+          >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton onClick={() => !item.children?.length && handleMenuClick(item.path)}>
+                <SidebarMenuButton
+                  onClick={() =>
+                    !item.children?.length && handleMenuClick(item.path)
+                  }
+                >
                   <span className="flex size-7 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
                     {renderMenuIcon(item.icon)}
                   </span>
@@ -80,9 +86,9 @@ export function NavMenuProject({
                   </SidebarMenuAction>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
+                  align={isMobile ? "end" : "start"}
                   className="w-48 rounded-lg"
                   side={isMobile ? "bottom" : "right"}
-                  align={isMobile ? "end" : "start"}
                 >
                   <DropdownMenuItem onClick={() => handleMenuClick(item.path)}>
                     <Folder className="text-muted-foreground" />
@@ -105,7 +111,11 @@ export function NavMenuProject({
                     {item.children.map((child) => (
                       <SidebarMenuSubItem key={child.id}>
                         <SidebarMenuSubButton asChild>
-                          <button className="flex w-full items-center gap-2" onClick={() => handleMenuClick(child.path)} type="button">
+                          <button
+                            className="flex w-full items-center gap-2"
+                            type="button"
+                            onClick={() => handleMenuClick(child.path)}
+                          >
                             <span className="flex size-6 items-center justify-center rounded-lg bg-white/80 ring-1 ring-slate-200">
                               {renderMenuIcon(child.icon)}
                             </span>
@@ -122,5 +132,5 @@ export function NavMenuProject({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

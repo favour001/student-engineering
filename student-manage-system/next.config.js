@@ -3,9 +3,11 @@ const imageProxyTarget =
   process.env.NEXT_PUBLIC_IMAGE_PROXY_TARGET ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "http://localhost:8888";
+const configuredBasePath =
+  process.env.NEXT_PUBLIC_BASE_PATH || process.env.NEXT_BASE_PATH || "";
 
 const nextConfig = {
-  basePath: "/student-admin",
+  basePath: configuredBasePath,
   async rewrites() {
     return [
       {

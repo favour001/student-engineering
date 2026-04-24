@@ -1,15 +1,14 @@
+import { usePathname } from "next/navigation";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { usePathname } from "next/navigation"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const titleMap: Record<string, string> = {
   platform: "系统管理",
@@ -29,20 +28,22 @@ const titleMap: Record<string, string> = {
   banner: "轮播图管理",
   "service-platform": "留学服务平台",
   "wechat-user": "微信用户信息",
-}
+};
 
-export function Header({ ...props }) {
-  const pathname = usePathname()
-  const segments = pathname.split('/').filter(Boolean)
-  const breadcrumbItems = segments.slice(1).map((segment) => titleMap[segment] || segment)
+export function Header() {
+  const pathname = usePathname();
+  const segments = pathname.split("/").filter(Boolean);
+  const breadcrumbItems = segments
+    .slice(1)
+    .map((segment) => titleMap[segment] || segment);
 
   return (
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-2 border-b border-white/60 bg-white/75 backdrop-blur-xl transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator
-          orientation="vertical"
           className="mr-2 data-[orientation=vertical]:h-4"
+          orientation="vertical"
         />
         <Breadcrumb>
           <BreadcrumbList>
@@ -61,5 +62,5 @@ export function Header({ ...props }) {
         </Breadcrumb>
       </div>
     </header>
-  )
+  );
 }

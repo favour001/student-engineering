@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 import {
   Table,
   TableHeader,
@@ -8,22 +8,22 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from "@heroui/react"
+} from "@heroui/react";
 
 export interface ColumnConfig {
-  name: string
-  uid: string
-  align?: "start" | "center" | "end"
-  sortable?: boolean
+  name: string;
+  uid: string;
+  align?: "start" | "center" | "end";
+  sortable?: boolean;
 }
 
 export interface CustomTableProps {
-  columns: ColumnConfig[]
-  data: any[]
-  renderCell?: (item: any, columnKey: string) => React.ReactNode
-  rowKey?: string
-  emptyContent?: string
-  ariaLabel?: string
+  columns: ColumnConfig[];
+  data: any[];
+  renderCell?: (item: any, columnKey: string) => React.ReactNode;
+  rowKey?: string;
+  emptyContent?: string;
+  ariaLabel?: string;
 }
 
 export function CustomTable({
@@ -32,18 +32,21 @@ export function CustomTable({
   renderCell,
   rowKey = "id",
   emptyContent = "暂无数据",
-  ariaLabel = "数据表格"
+  ariaLabel = "数据表格",
 }: CustomTableProps) {
-  const defaultRenderCell = React.useCallback((item: any, columnKey: string) => {
-    return item[columnKey] ?? "-"
-  }, [])
+  const defaultRenderCell = React.useCallback(
+    (item: any, columnKey: string) => {
+      return item[columnKey] ?? "-";
+    },
+    [],
+  );
 
-  const cellRenderer = renderCell || defaultRenderCell
+  const cellRenderer = renderCell || defaultRenderCell;
 
   return (
     <Table
-      aria-label={ariaLabel}
       removeWrapper
+      aria-label={ariaLabel}
       classNames={{
         th: "bg-slate-50 text-slate-500 text-xs uppercase tracking-[0.16em] border-b border-slate-200",
         td: "py-4 text-slate-700 border-b border-slate-100",
@@ -52,8 +55,8 @@ export function CustomTable({
     >
       <TableHeader columns={columns}>
         {(column) => (
-          <TableColumn 
-            key={column.uid} 
+          <TableColumn
+            key={column.uid}
             align={column.align || "start"}
             allowsSorting={column.sortable}
           >
@@ -61,7 +64,7 @@ export function CustomTable({
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={data} emptyContent={emptyContent}>
+      <TableBody emptyContent={emptyContent} items={data}>
         {(item) => (
           <TableRow key={item[rowKey]}>
             {(columnKey) => (
@@ -71,6 +74,5 @@ export function CustomTable({
         )}
       </TableBody>
     </Table>
-  )
+  );
 }
-

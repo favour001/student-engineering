@@ -1,51 +1,40 @@
-"use client"
+"use client";
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react"
+import { ChevronsUpDown, LogOut } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { useLogout } from "../hooks/useLogout";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useLogout } from "../hooks/useLogout"
-import { resolveAssetUrl } from "@/utils/upload"
+} from "@/components/ui/sidebar";
+import { resolveAssetUrl } from "@/utils/upload";
 
 export function NavUser({
   user,
 }: {
   user: {
-    userName: string
-    email?: string
-    profileImage?: string
-  } | null
+    userName: string;
+    email?: string;
+    profileImage?: string;
+  } | null;
 }) {
-  const { isMobile } = useSidebar()
-  const { logout, loading } = useLogout()
+  const { isMobile } = useSidebar();
+  const { logout, loading } = useLogout();
 
   if (!user) {
-    return null
+    return null;
   }
 
   return (
@@ -54,52 +43,64 @@ export function NavUser({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={user.profileImage ? resolveAssetUrl(user.profileImage) : undefined}
                   alt={user.userName}
+                  src={
+                    user.profileImage
+                      ? resolveAssetUrl(user.profileImage)
+                      : undefined
+                  }
                 />
-                <AvatarFallback className="rounded-lg">{user.userName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {user.userName.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.userName}</span>
-                <span className="truncate text-xs">{user.email || ''}</span>
+                <span className="truncate text-xs">{user.email || ""}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
+            align="end"
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
-            align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={user.profileImage ? resolveAssetUrl(user.profileImage) : undefined}
                     alt={user.userName}
+                    src={
+                      user.profileImage
+                        ? resolveAssetUrl(user.profileImage)
+                        : undefined
+                    }
                   />
-                  <AvatarFallback className="rounded-lg">{user.userName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {user.userName.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.userName}</span>
-                  <span className="truncate text-xs">{user.email || ''}</span>
+                  <span className="truncate text-xs">{user.email || ""}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout} disabled={loading}>
+            <DropdownMenuItem disabled={loading} onClick={logout}>
               <LogOut />
-              {loading ? '登出中...' : '登出'}
+              {loading ? "登出中..." : "登出"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

@@ -1,14 +1,40 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { ArrowRight, BookOpenText, Database, Layers3, ShieldCheck } from "lucide-react"
+import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpenText,
+  Database,
+  Layers3,
+  ShieldCheck,
+} from "lucide-react";
 
 const quickLinks = [
-  { title: "用户管理", desc: "维护账号、角色与访问状态", href: "/home/main/pages/platform/user", icon: ShieldCheck },
-  { title: "菜单权限", desc: "检查导航结构与权限颗粒度", href: "/home/main/pages/platform/menu", icon: Layers3 },
-  { title: "公告管理", desc: "发布协会公告与活动通知", href: "/home/main/pages/business/notice", icon: BookOpenText },
-  { title: "微信用户信息", desc: "维护私域用户档案与备注", href: "/home/main/pages/business/wechat-user", icon: Database },
-]
+  {
+    title: "用户管理",
+    desc: "维护账号、角色与访问状态",
+    href: "/home/main/pages/platform/user",
+    icon: ShieldCheck,
+  },
+  {
+    title: "菜单权限",
+    desc: "检查导航结构与权限颗粒度",
+    href: "/home/main/pages/platform/menu",
+    icon: Layers3,
+  },
+  {
+    title: "公告管理",
+    desc: "发布协会公告与活动通知",
+    href: "/home/main/pages/business/notice",
+    icon: BookOpenText,
+  },
+  {
+    title: "微信用户信息",
+    desc: "维护私域用户档案与备注",
+    href: "/home/main/pages/business/wechat-user",
+    icon: Database,
+  },
+];
 
 export default function HomePage() {
   return (
@@ -29,18 +55,21 @@ export default function HomePage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {quickLinks.map((item) => {
-          const Icon = item.icon
+          const Icon = item.icon;
+
           return (
             <Link
               key={item.href}
-              href={item.href}
               className="group rounded-[24px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)] transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_24px_60px_-35px_rgba(14,165,233,0.35)]"
+              href={item.href}
             >
               <div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
                 <Icon className="size-5" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-slate-900">{item.title}</h2>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {item.title}
+                </h2>
                 <p className="text-sm leading-6 text-slate-500">{item.desc}</p>
               </div>
               <div className="mt-5 flex items-center gap-2 text-sm font-medium text-sky-700">
@@ -48,7 +77,7 @@ export default function HomePage() {
                 <ArrowRight className="size-4 transition group-hover:translate-x-1" />
               </div>
             </Link>
-          )
+          );
         })}
       </div>
 
@@ -56,10 +85,18 @@ export default function HomePage() {
         <div className="rounded-[24px] border border-slate-200/80 bg-white/90 p-6">
           <h3 className="text-lg font-semibold text-slate-900">本次改造重点</h3>
           <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">统一系统管理列表交互，修复分页与权限状态逻辑。</div>
-            <div className="rounded-2xl bg-slate-50 p-4">补齐成员风采、公告、文章、轮播图等业务管理能力。</div>
-            <div className="rounded-2xl bg-slate-50 p-4">优化侧边栏、头部面包屑与首页总览，让后台更像正式产品。</div>
-            <div className="rounded-2xl bg-slate-50 p-4">前后端都新增 docs/READ.md，后续文档按统一规则沉淀。</div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              统一系统管理列表交互，修复分页与权限状态逻辑。
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              补齐成员风采、公告、文章、轮播图等业务管理能力。
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              优化侧边栏、头部面包屑与首页总览，让后台更像正式产品。
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              前后端都新增 docs/READ.md，后续文档按统一规则沉淀。
+            </div>
           </div>
         </div>
         <div className="rounded-[24px] border border-slate-200/80 bg-slate-950 p-6 text-slate-100">
@@ -72,5 +109,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

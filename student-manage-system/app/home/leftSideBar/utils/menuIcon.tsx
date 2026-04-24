@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
-import type { ComponentType } from "react"
+import type { ComponentType } from "react";
+
 import {
   BellDot,
   BookOpenText,
@@ -20,7 +21,7 @@ import {
   Users,
   UsersRound,
   Waypoints,
-} from "lucide-react"
+} from "lucide-react";
 
 const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   system: ShieldCheck,
@@ -40,14 +41,14 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   banner: GalleryHorizontalEnd,
   "service-platform": Newspaper,
   "wechat-user": UsersRound,
-}
+};
 
 export const renderMenuIcon = (iconKey?: string) => {
-  const IconComponent = iconKey ? iconMap[iconKey] : undefined
+  const IconComponent = iconKey ? iconMap[iconKey] : undefined;
 
   if (!IconComponent) {
-    return <Megaphone className="size-4 text-sky-600" />
+    return <Megaphone className="size-4 text-sky-600" />;
   }
 
-  return <IconComponent className="size-4 text-sky-600" />
-}
+  return <IconComponent className="size-4 text-sky-600" />;
+};

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { use, useEffect, useMemo, useState } from "react"
+import React, { use, useEffect, useMemo, useState } from "react";
 import {
   Button,
   Checkbox,
@@ -16,28 +16,29 @@ import {
   Switch,
   Textarea,
   DatePicker,
-} from "@heroui/react"
-import { parseAbsoluteToLocal } from "@internationalized/date"
-import { Plus, SearchIcon, Sparkles, UserPlus, Users } from "lucide-react"
-import { FileUploadField } from "../components/file-upload-field"
-import { RichTextEditor } from "../components/rich-text-editor"
-import { Search, SearchFieldConfig } from "../../components/search"
-import { Page } from "../../components/page"
-import { CustomTable, ColumnConfig } from "../../components/table"
-import {
-  BusinessExtraField,
-  businessCategoryConfigMap,
-} from "../config"
+} from "@heroui/react";
+import { parseAbsoluteToLocal } from "@internationalized/date";
+import { Plus, SearchIcon, Sparkles, UserPlus, Users } from "lucide-react";
+
+import { FileUploadField } from "../components/file-upload-field";
+import { RichTextEditor } from "../components/rich-text-editor";
+import { Search, SearchFieldConfig } from "../../components/search";
+import { Page } from "../../components/page";
+import { CustomTable, ColumnConfig } from "../../components/table";
+import { BusinessExtraField, businessCategoryConfigMap } from "../config";
 import {
   BusinessAssignableUser,
   BusinessContentItem,
   contentApi,
-} from "../services/contentApi"
+} from "../services/contentApi";
 
-const statusMap: Record<number, { label: string; color: "success" | "danger" }> = {
+const statusMap: Record<
+  number,
+  { label: string; color: "success" | "danger" }
+> = {
   0: { label: "启用", color: "success" },
   1: { label: "禁用", color: "danger" },
-}
+};
 
 const initialFormState: Partial<BusinessContentItem> = {
   title: "",
@@ -91,15 +92,15 @@ const initialFormState: Partial<BusinessContentItem> = {
   honorRemark: "",
   companyRemark: "",
   jobRemark: "",
-}
+};
 
 function normalizeDateInput(value?: string | null) {
-  return value ? value.slice(0, 16) : ""
+  return value ? value.slice(0, 16) : "";
 }
 
 function stripHtml(value?: string | null) {
   if (!value) {
-    return ""
+    return "";
   }
 
   return value
@@ -109,7 +110,7 @@ function stripHtml(value?: string | null) {
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/\s+/g, " ")
-    .trim()
+    .trim();
 }
 
 function getTablePreview(item: BusinessContentItem) {
@@ -121,49 +122,60 @@ function getTablePreview(item: BusinessContentItem) {
     stripHtml(item.author),
     stripHtml(item.externalUrl),
     stripHtml(item.mobile),
-  ]
+  ];
 
-  return candidates.find(Boolean) || "-"
+  return candidates.find(Boolean) || "-";
 }
 
 function toDatePickerValue(value?: string | null) {
-  return value ? (parseAbsoluteToLocal(new Date(String(value)).toISOString()) as any) : null
+  return value
+    ? (parseAbsoluteToLocal(new Date(String(value)).toISOString()) as any)
+    : null;
 }
 
 function toDatePickerIsoString(value: any) {
   if (!value) {
-    return ""
+    return "";
   }
 
   return typeof value.toDate === "function"
     ? value.toDate().toISOString()
-    : new Date(String(value)).toISOString()
+    : new Date(String(value)).toISOString();
 }
 
 export default function BusinessCategoryPage({
   params,
 }: {
-  params: Promise<{ category: string }>
+  params: Promise<{ category: string }>;
 }) {
-  const { category } = use(params)
-  const categoryConfig = businessCategoryConfigMap[category]
+  const { category } = use(params);
+  const categoryConfig = businessCategoryConfigMap[category];
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<BusinessContentItem[]>([])
-  const [searchParams, setSearchParams] = useState<Record<string, any>>({})
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<BusinessContentItem | null>(null)
-  const [formState, setFormState] = useState<Partial<BusinessContentItem>>(initialFormState)
-  const [assignmentOpen, setAssignmentOpen] = useState(false)
-  const [assignmentLoading, setAssignmentLoading] = useState(false)
-  const [assignmentUsers, setAssignmentUsers] = useState<BusinessAssignableUser[]>([])
-  const [assignmentTotal, setAssignmentTotal] = useState(0)
-  const [assignmentTarget, setAssignmentTarget] = useState<BusinessContentItem | null>(null)
-  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([])
-  const [assignmentQuery, setAssignmentQuery] = useState<{ title?: string; mobile?: string }>({})
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<BusinessContentItem[]>([]);
+  const [searchParams, setSearchParams] = useState<Record<string, any>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<BusinessContentItem | null>(
+    null,
+  );
+  const [formState, setFormState] =
+    useState<Partial<BusinessContentItem>>(initialFormState);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [assignmentLoading, setAssignmentLoading] = useState(false);
+  const [assignmentUsers, setAssignmentUsers] = useState<
+    BusinessAssignableUser[]
+  >([]);
+  const [assignmentTotal, setAssignmentTotal] = useState(0);
+  const [assignmentTarget, setAssignmentTarget] =
+    useState<BusinessContentItem | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [assignmentQuery, setAssignmentQuery] = useState<{
+    title?: string;
+    mobile?: string;
+  }>({});
 
   const searchFields = useMemo<SearchFieldConfig[]>(
     () =>
@@ -196,7 +208,7 @@ export default function BusinessCategoryPage({
           : []),
       ],
     [categoryConfig],
-  )
+  );
 
   const columns: ColumnConfig[] = [
     { name: categoryConfig?.primaryLabel || "标题", uid: "title" },
@@ -214,15 +226,44 @@ export default function BusinessCategoryPage({
       uid: "publishedAt",
     },
     { name: "操作", uid: "actions", align: "center" },
-  ]
+  ];
 
   const secondaryOptionLabelMap = useMemo(
     () =>
       Object.fromEntries(
-        (categoryConfig?.secondaryOptions || []).map((option) => [option.value, option.label]),
+        (categoryConfig?.secondaryOptions || []).map((option) => [
+          option.value,
+          option.label,
+        ]),
       ) as Record<string, string>,
     [categoryConfig?.secondaryOptions],
-  )
+  );
+
+  const fetchList = async () => {
+    if (!categoryConfig) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await contentApi.getList({
+        page: currentPage,
+        limit: pageSize,
+        category,
+        ...searchParams,
+      });
+
+      setItems(result.list);
+      setTotal(result.total);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, [currentPage, pageSize, category, searchParams]);
 
   if (!categoryConfig) {
     return (
@@ -231,65 +272,44 @@ export default function BusinessCategoryPage({
           未找到对应的业务分类页面。
         </div>
       </div>
-    )
+    );
   }
-
-  const fetchList = async () => {
-    setLoading(true)
-
-    try {
-      const result = await contentApi.getList({
-        page: currentPage,
-        limit: pageSize,
-        category,
-        ...searchParams,
-      })
-
-      setItems(result.list)
-      setTotal(result.total)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchList()
-  }, [currentPage, pageSize, category, searchParams])
 
   const handleSearch = (values: Record<string, any>) => {
     const filteredValues = Object.fromEntries(
       Object.entries(values).filter(
         ([, value]) => value !== "" && value !== undefined && value !== null,
       ),
-    )
+    );
 
-    setCurrentPage(1)
-    setSearchParams(filteredValues)
-  }
+    setCurrentPage(1);
+    setSearchParams(filteredValues);
+  };
 
   const handleReset = () => {
-    setCurrentPage(1)
-    setSearchParams({})
-  }
+    setCurrentPage(1);
+    setSearchParams({});
+  };
 
   const openCreateModal = () => {
-    setEditingItem(null)
-    setFormState({ ...initialFormState, category })
-    setIsModalOpen(true)
-  }
+    setEditingItem(null);
+    setFormState({ ...initialFormState, category });
+    setIsModalOpen(true);
+  };
 
   const openEditModal = async (item: BusinessContentItem) => {
-    const detail = await contentApi.getItem(item.id, category)
-    setEditingItem(detail)
+    const detail = await contentApi.getItem(item.id, category);
+
+    setEditingItem(detail);
     setFormState({
       ...detail,
       publishedAt: normalizeDateInput(detail.publishedAt),
       startTime: normalizeDateInput(detail.startTime),
       endTime: normalizeDateInput(detail.endTime),
       birthday: normalizeDateInput(detail.birthday),
-    })
-    setIsModalOpen(true)
-  }
+    });
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = async () => {
     const payload = {
@@ -299,43 +319,45 @@ export default function BusinessCategoryPage({
       startTime: formState.startTime || null,
       endTime: formState.endTime || null,
       birthday: formState.birthday || null,
-    }
+    };
 
     if (!payload.title) {
-      alert(`请填写${categoryConfig.primaryLabel}`)
-      return
+      alert(`请填写${categoryConfig.primaryLabel}`);
+
+      return;
     }
 
     if (editingItem) {
-      await contentApi.updateItem(editingItem.id, payload)
+      await contentApi.updateItem(editingItem.id, payload);
     } else {
-      await contentApi.createItem(payload)
+      await contentApi.createItem(payload);
     }
 
-    setIsModalOpen(false)
-    await fetchList()
-  }
+    setIsModalOpen(false);
+    await fetchList();
+  };
 
   const handleDelete = async (item: BusinessContentItem) => {
     if (!confirm(`确定删除「${item.title}」吗？`)) {
-      return
+      return;
     }
 
-    await contentApi.deleteItem(item.id, category)
-    await fetchList()
-  }
+    await contentApi.deleteItem(item.id, category);
+    await fetchList();
+  };
 
   const handleStatusToggle = async (item: BusinessContentItem) => {
-    const nextStatus = item.status === 0 ? 1 : 0
-    await contentApi.updateStatus(item.id, category, nextStatus)
-    await fetchList()
-  }
+    const nextStatus = item.status === 0 ? 1 : 0;
+
+    await contentApi.updateStatus(item.id, category, nextStatus);
+    await fetchList();
+  };
 
   const fetchAssignableUsers = async (
     target: BusinessContentItem,
     query: { title?: string; mobile?: string } = assignmentQuery,
   ) => {
-    setAssignmentLoading(true)
+    setAssignmentLoading(true);
 
     try {
       const result =
@@ -345,53 +367,61 @@ export default function BusinessCategoryPage({
               limit: 12,
               ...query,
             })
-          : await contentApi.getAssignableCardUsers(target.id, category as "vip" | "welfare", {
-              page: 1,
-              limit: 12,
-              ...query,
-            })
+          : await contentApi.getAssignableCardUsers(
+              target.id,
+              category as "vip" | "welfare",
+              {
+                page: 1,
+                limit: 12,
+                ...query,
+              },
+            );
 
-      setAssignmentUsers(result.list)
-      setAssignmentTotal(result.total)
+      setAssignmentUsers(result.list);
+      setAssignmentTotal(result.total);
     } finally {
-      setAssignmentLoading(false)
+      setAssignmentLoading(false);
     }
-  }
+  };
 
   const openAssignmentModal = async (item: BusinessContentItem) => {
-    setAssignmentTarget(item)
-    setSelectedUserIds([])
-    setAssignmentQuery({})
-    setAssignmentOpen(true)
-    await fetchAssignableUsers(item, {})
-  }
+    setAssignmentTarget(item);
+    setSelectedUserIds([]);
+    setAssignmentQuery({});
+    setAssignmentOpen(true);
+    await fetchAssignableUsers(item, {});
+  };
 
   const handleAssignmentSearch = async () => {
     if (!assignmentTarget) {
-      return
+      return;
     }
-    await fetchAssignableUsers(assignmentTarget, assignmentQuery)
-  }
+    await fetchAssignableUsers(assignmentTarget, assignmentQuery);
+  };
 
   const handleAssignmentSubmit = async () => {
     if (!assignmentTarget || selectedUserIds.length === 0) {
-      alert("请至少选择一个用户")
-      return
+      alert("请至少选择一个用户");
+
+      return;
     }
 
     if (category === "service-platform") {
-      await contentApi.assignMerchantUsers(assignmentTarget.id, selectedUserIds)
+      await contentApi.assignMerchantUsers(
+        assignmentTarget.id,
+        selectedUserIds,
+      );
     } else {
       await contentApi.assignCardUsers(
         assignmentTarget.id,
         category as "vip" | "welfare",
         selectedUserIds,
-      )
+      );
     }
 
-    setAssignmentOpen(false)
-    await fetchList()
-  }
+    setAssignmentOpen(false);
+    await fetchList();
+  };
 
   const renderCell = (item: BusinessContentItem, columnKey: string) => {
     switch (columnKey) {
@@ -399,104 +429,126 @@ export default function BusinessCategoryPage({
         return (
           <div className="space-y-1">
             <p className="font-semibold text-slate-900">{item.title}</p>
-            {item.tags ? <p className="text-xs text-slate-500">{item.tags}</p> : null}
+            {item.tags ? (
+              <p className="text-xs text-slate-500">{item.tags}</p>
+            ) : null}
           </div>
-        )
+        );
       case "summary":
         return (
           <p className="max-w-[340px] truncate text-sm text-slate-500">
             {getTablePreview(item)}
           </p>
-        )
+        );
       case "subTitle":
-        return secondaryOptionLabelMap[item.subTitle || ""] || item.subTitle || "-"
+        return (
+          secondaryOptionLabelMap[item.subTitle || ""] || item.subTitle || "-"
+        );
       case "status":
         return (
-          <button onClick={() => handleStatusToggle(item)} className="cursor-pointer">
-            <Chip color={statusMap[item.status]?.color || "default"} variant="flat" size="sm">
+          <button
+            className="cursor-pointer"
+            onClick={() => handleStatusToggle(item)}
+          >
+            <Chip
+              color={statusMap[item.status]?.color || "default"}
+              size="sm"
+              variant="flat"
+            >
               {statusMap[item.status]?.label || "未知"}
             </Chip>
           </button>
-        )
+        );
       case "publishedAt":
         return (
           <span className="text-sm text-slate-500">
             {item.publishedAt || item.createTime
-              ? new Date(item.publishedAt || item.createTime || "").toLocaleString("zh-CN")
+              ? new Date(
+                  item.publishedAt || item.createTime || "",
+                ).toLocaleString("zh-CN")
               : "-"}
           </span>
-        )
+        );
       case "actions":
         return (
           <div className="flex flex-wrap items-center justify-center gap-2">
             {categoryConfig.assignment ? (
               <Button
-                size="sm"
                 color="secondary"
+                size="sm"
                 variant="flat"
                 onPress={() => openAssignmentModal(item)}
               >
                 分配用户
               </Button>
             ) : null}
-            <Button size="sm" variant="flat" onPress={() => openEditModal(item)}>
+            <Button
+              size="sm"
+              variant="flat"
+              onPress={() => openEditModal(item)}
+            >
               编辑
             </Button>
-            <Button size="sm" color="danger" variant="light" onPress={() => handleDelete(item)}>
+            <Button
+              color="danger"
+              size="sm"
+              variant="light"
+              onPress={() => handleDelete(item)}
+            >
               删除
             </Button>
           </div>
-        )
+        );
       default:
-        return String(item[columnKey as keyof BusinessContentItem] || "-")
+        return String(item[columnKey as keyof BusinessContentItem] || "-");
     }
-  }
+  };
 
   const renderExtraField = (field: BusinessExtraField) => {
-    const value = formState[field.key]
+    const value = formState[field.key];
 
     if (field.type === "richtext") {
       return (
         <RichTextEditor
           key={field.key}
-          label={field.label}
           folder={category}
-          value={String(value ?? "")}
+          label={field.label}
           minHeight={220}
+          value={String(value ?? "")}
           onChange={(nextValue) =>
             setFormState((prev) => ({ ...prev, [field.key]: nextValue }))
           }
         />
-      )
+      );
     }
 
     if (field.type === "file") {
       return (
         <FileUploadField
           key={field.key}
-          label={field.label}
           folder={category}
+          label={field.label}
           value={String(value ?? "")}
           onChange={(nextValue) =>
             setFormState((prev) => ({ ...prev, [field.key]: nextValue }))
           }
         />
-      )
+      );
     }
 
     if (field.type === "textarea") {
       return (
         <Textarea
           key={field.key}
-          label={field.label}
           className="md:col-span-2"
+          label={field.label}
           minRows={4}
           value={String(value ?? "")}
           onChange={(e) =>
             setFormState((prev) => ({ ...prev, [field.key]: e.target.value }))
           }
         />
-      )
+      );
     }
 
     if (field.type === "select") {
@@ -506,21 +558,27 @@ export default function BusinessCategoryPage({
           label={field.label}
           selectedKeys={value ? [String(value)] : []}
           onSelectionChange={(keys) => {
-            const nextValue = Array.from(keys)[0]
-            setFormState((prev) => ({ ...prev, [field.key]: String(nextValue ?? "") }))
+            const nextValue = Array.from(keys)[0];
+
+            setFormState((prev) => ({
+              ...prev,
+              [field.key]: String(nextValue ?? ""),
+            }));
           }}
         >
           {(field.options || []).map((option) => (
             <SelectItem key={option.value}>{option.label}</SelectItem>
           ))}
         </Select>
-      )
+      );
     }
 
     if (field.type === "datetime-local") {
       return (
         <DatePicker
           key={field.key}
+          showMonthAndYearPickers
+          granularity="minute"
           label={field.label}
           value={toDatePickerValue(String(value ?? ""))}
           onChange={(nextValue: any) => {
@@ -528,15 +586,13 @@ export default function BusinessCategoryPage({
               setFormState((prev) => ({
                 ...prev,
                 [field.key]: toDatePickerIsoString(nextValue),
-              }))
+              }));
             } else {
-              setFormState((prev) => ({ ...prev, [field.key]: "" }))
+              setFormState((prev) => ({ ...prev, [field.key]: "" }));
             }
           }}
-          showMonthAndYearPickers
-          granularity="minute"
         />
-      )
+      );
     }
 
     return (
@@ -544,17 +600,21 @@ export default function BusinessCategoryPage({
         key={field.key}
         label={field.label}
         type={field.type || "text"}
-        value={field.type === "number" ? String(value ?? 0) : String(value ?? "")}
+        value={
+          field.type === "number" ? String(value ?? 0) : String(value ?? "")
+        }
         onChange={(e) =>
           setFormState((prev) => ({
             ...prev,
             [field.key]:
-              field.type === "number" ? Number(e.target.value || 0) : e.target.value,
+              field.type === "number"
+                ? Number(e.target.value || 0)
+                : e.target.value,
           }))
         }
       />
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-5 p-5">
@@ -565,13 +625,17 @@ export default function BusinessCategoryPage({
               <Sparkles className="size-3.5" />
               Business Module
             </div>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-900">{categoryConfig.title}</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{categoryConfig.subtitle}</p>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-900">
+              {categoryConfig.title}
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {categoryConfig.subtitle}
+            </p>
           </div>
           <Button
+            className="bg-sky-600 text-white shadow-lg shadow-sky-100"
             color="primary"
             startContent={<Plus className="size-4" />}
-            className="bg-sky-600 text-white shadow-lg shadow-sky-100"
             onPress={openCreateModal}
           >
             新增内容
@@ -579,16 +643,26 @@ export default function BusinessCategoryPage({
         </div>
       </section>
 
-      <Search fields={searchFields} onSearch={handleSearch} onReset={handleReset} />
+      <Search
+        fields={searchFields}
+        onReset={handleReset}
+        onSearch={handleSearch}
+      />
 
       <section className="rounded-[24px] border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)] backdrop-blur">
         <div className="mb-5 flex flex-wrap gap-4">
           <div className="rounded-2xl bg-sky-50 px-4 py-3">
-            <div className="text-xs uppercase tracking-[0.16em] text-sky-600">Total</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-900">{total}</div>
+            <div className="text-xs uppercase tracking-[0.16em] text-sky-600">
+              Total
+            </div>
+            <div className="mt-1 text-2xl font-semibold text-slate-900">
+              {total}
+            </div>
           </div>
           <div className="rounded-2xl bg-emerald-50 px-4 py-3">
-            <div className="text-xs uppercase tracking-[0.16em] text-emerald-600">With Image</div>
+            <div className="text-xs uppercase tracking-[0.16em] text-emerald-600">
+              With Image
+            </div>
             <div className="mt-1 text-2xl font-semibold text-slate-900">
               {items.filter((item) => item.coverImage).length}
             </div>
@@ -604,44 +678,61 @@ export default function BusinessCategoryPage({
         </div>
 
         <CustomTable
+          ariaLabel={`${categoryConfig.title}列表`}
           columns={columns}
           data={items}
+          emptyContent={loading ? "加载中..." : "暂无数据"}
           renderCell={renderCell}
           rowKey="id"
-          ariaLabel={`${categoryConfig.title}列表`}
-          emptyContent={loading ? "加载中..." : "暂无数据"}
         />
 
         <Page
-          current={currentPage}
-          total={total}
-          pageSize={pageSize}
-          onChange={setCurrentPage}
           showSizeChanger
+          current={currentPage}
+          pageSize={pageSize}
+          total={total}
+          onChange={setCurrentPage}
           onPageSizeChange={(size) => {
-            setPageSize(size)
-            setCurrentPage(1)
+            setPageSize(size);
+            setCurrentPage(1);
           }}
         />
       </section>
 
-      <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen} size="4xl" scrollBehavior="inside">
+      <Modal
+        isOpen={isModalOpen}
+        scrollBehavior="inside"
+        size="4xl"
+        onOpenChange={setIsModalOpen}
+      >
         <ModalContent>
-          <ModalHeader>{editingItem ? `编辑${categoryConfig.title}` : `新增${categoryConfig.title}`}</ModalHeader>
+          <ModalHeader>
+            {editingItem
+              ? `编辑${categoryConfig.title}`
+              : `新增${categoryConfig.title}`}
+          </ModalHeader>
           <ModalBody className="grid gap-4 md:grid-cols-2">
             <Input
               label={categoryConfig.primaryLabel}
               value={formState.title || ""}
-              onChange={(e) => setFormState((prev) => ({ ...prev, title: e.target.value }))}
+              onChange={(e) =>
+                setFormState((prev) => ({ ...prev, title: e.target.value }))
+              }
             />
             {categoryConfig.secondaryLabel ? (
               categoryConfig.secondaryOptions?.length ? (
                 <Select
                   label={categoryConfig.secondaryLabel}
-                  selectedKeys={formState.subTitle ? [String(formState.subTitle)] : []}
+                  selectedKeys={
+                    formState.subTitle ? [String(formState.subTitle)] : []
+                  }
                   onSelectionChange={(keys) => {
-                    const nextValue = Array.from(keys)[0]
-                    setFormState((prev) => ({ ...prev, subTitle: String(nextValue ?? "") }))
+                    const nextValue = Array.from(keys)[0];
+
+                    setFormState((prev) => ({
+                      ...prev,
+                      subTitle: String(nextValue ?? ""),
+                    }));
                   }}
                 >
                   {categoryConfig.secondaryOptions.map((option) => (
@@ -653,16 +744,19 @@ export default function BusinessCategoryPage({
                   label={categoryConfig.secondaryLabel}
                   value={formState.subTitle || ""}
                   onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, subTitle: e.target.value }))
+                    setFormState((prev) => ({
+                      ...prev,
+                      subTitle: e.target.value,
+                    }))
                   }
                 />
               )
             ) : null}
             {categoryConfig.coverImageLabel ? (
               <FileUploadField
-                label={categoryConfig.coverImageLabel}
-                folder={category}
                 accept="image/*"
+                folder={category}
+                label={categoryConfig.coverImageLabel}
                 value={formState.coverImage || ""}
                 onChange={(nextValue) =>
                   setFormState((prev) => ({ ...prev, coverImage: nextValue }))
@@ -674,7 +768,10 @@ export default function BusinessCategoryPage({
                 label={categoryConfig.externalUrlLabel}
                 value={formState.externalUrl || ""}
                 onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, externalUrl: e.target.value }))
+                  setFormState((prev) => ({
+                    ...prev,
+                    externalUrl: e.target.value,
+                  }))
                 }
               />
             ) : null}
@@ -682,14 +779,18 @@ export default function BusinessCategoryPage({
               <Input
                 label={categoryConfig.sourceLabel}
                 value={formState.source || ""}
-                onChange={(e) => setFormState((prev) => ({ ...prev, source: e.target.value }))}
+                onChange={(e) =>
+                  setFormState((prev) => ({ ...prev, source: e.target.value }))
+                }
               />
             ) : null}
             {categoryConfig.authorLabel ? (
               <Input
                 label={categoryConfig.authorLabel}
                 value={formState.author || ""}
-                onChange={(e) => setFormState((prev) => ({ ...prev, author: e.target.value }))}
+                onChange={(e) =>
+                  setFormState((prev) => ({ ...prev, author: e.target.value }))
+                }
               />
             ) : null}
             {categoryConfig.extraFields?.map(renderExtraField)}
@@ -708,6 +809,8 @@ export default function BusinessCategoryPage({
             ) : null}
             {categoryConfig.publishedAtLabel ? (
               <DatePicker
+                showMonthAndYearPickers
+                granularity="minute"
                 label={categoryConfig.publishedAtLabel}
                 value={toDatePickerValue(formState.publishedAt)}
                 onChange={(value: any) => {
@@ -715,13 +818,11 @@ export default function BusinessCategoryPage({
                     setFormState((prev) => ({
                       ...prev,
                       publishedAt: toDatePickerIsoString(value),
-                    }))
+                    }));
                   } else {
-                    setFormState((prev) => ({ ...prev, publishedAt: "" }))
+                    setFormState((prev) => ({ ...prev, publishedAt: "" }));
                   }
                 }}
-                showMonthAndYearPickers
-                granularity="minute"
               />
             ) : null}
             {categoryConfig.enableStatus ? (
@@ -729,7 +830,10 @@ export default function BusinessCategoryPage({
                 <Switch
                   isSelected={(formState.status ?? 0) === 0}
                   onValueChange={(selected) =>
-                    setFormState((prev) => ({ ...prev, status: selected ? 0 : 1 }))
+                    setFormState((prev) => ({
+                      ...prev,
+                      status: selected ? 0 : 1,
+                    }))
                   }
                 >
                   启用
@@ -739,21 +843,24 @@ export default function BusinessCategoryPage({
             {categoryConfig.summaryLabel ? (
               categoryConfig.summaryInputType === "richtext" ? (
                 <RichTextEditor
-                  label={categoryConfig.summaryLabel}
                   folder={category}
-                  value={formState.summary || ""}
+                  label={categoryConfig.summaryLabel}
                   minHeight={220}
+                  value={formState.summary || ""}
                   onChange={(nextValue) =>
                     setFormState((prev) => ({ ...prev, summary: nextValue }))
                   }
                 />
               ) : (
                 <Textarea
-                  label={categoryConfig.summaryLabel}
                   className="md:col-span-2"
+                  label={categoryConfig.summaryLabel}
                   value={formState.summary || ""}
                   onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, summary: e.target.value }))
+                    setFormState((prev) => ({
+                      ...prev,
+                      summary: e.target.value,
+                    }))
                   }
                 />
               )
@@ -761,22 +868,25 @@ export default function BusinessCategoryPage({
             {categoryConfig.contentLabel ? (
               categoryConfig.contentInputType === "richtext" ? (
                 <RichTextEditor
-                  label={categoryConfig.contentLabel}
                   folder={category}
-                  value={formState.content || ""}
+                  label={categoryConfig.contentLabel}
                   minHeight={320}
+                  value={formState.content || ""}
                   onChange={(nextValue) =>
                     setFormState((prev) => ({ ...prev, content: nextValue }))
                   }
                 />
               ) : (
                 <Textarea
-                  label={categoryConfig.contentLabel}
                   className="md:col-span-2"
+                  label={categoryConfig.contentLabel}
                   minRows={10}
                   value={formState.content || ""}
                   onChange={(e) =>
-                    setFormState((prev) => ({ ...prev, content: e.target.value }))
+                    setFormState((prev) => ({
+                      ...prev,
+                      content: e.target.value,
+                    }))
                   }
                 />
               )
@@ -786,14 +896,23 @@ export default function BusinessCategoryPage({
             <Button variant="flat" onPress={() => setIsModalOpen(false)}>
               取消
             </Button>
-            <Button color="primary" className="bg-sky-600 text-white" onPress={handleSubmit}>
+            <Button
+              className="bg-sky-600 text-white"
+              color="primary"
+              onPress={handleSubmit}
+            >
               保存
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={assignmentOpen} onOpenChange={setAssignmentOpen} size="3xl" scrollBehavior="inside">
+      <Modal
+        isOpen={assignmentOpen}
+        scrollBehavior="inside"
+        size="3xl"
+        onOpenChange={setAssignmentOpen}
+      >
         <ModalContent>
           <ModalHeader className="flex items-center gap-2">
             <Users className="size-4 text-sky-600" />
@@ -806,14 +925,20 @@ export default function BusinessCategoryPage({
                 label="用户昵称"
                 value={assignmentQuery.title || ""}
                 onChange={(e) =>
-                  setAssignmentQuery((prev) => ({ ...prev, title: e.target.value }))
+                  setAssignmentQuery((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
                 }
               />
               <Input
                 label="手机号"
                 value={assignmentQuery.mobile || ""}
                 onChange={(e) =>
-                  setAssignmentQuery((prev) => ({ ...prev, mobile: e.target.value }))
+                  setAssignmentQuery((prev) => ({
+                    ...prev,
+                    mobile: e.target.value,
+                  }))
                 }
               />
               <Button
@@ -832,32 +957,43 @@ export default function BusinessCategoryPage({
               </div>
               <div className="grid gap-3">
                 {assignmentLoading ? (
-                  <div className="py-10 text-center text-sm text-slate-500">加载中...</div>
+                  <div className="py-10 text-center text-sm text-slate-500">
+                    加载中...
+                  </div>
                 ) : assignmentUsers.length === 0 ? (
-                  <div className="py-10 text-center text-sm text-slate-500">暂无可分配用户</div>
+                  <div className="py-10 text-center text-sm text-slate-500">
+                    暂无可分配用户
+                  </div>
                 ) : (
                   assignmentUsers.map((user) => (
-                    <label
+                    <div
                       key={user.id}
                       className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3"
                     >
                       <div className="min-w-0">
-                        <p className="font-medium text-slate-900">{user.title}</p>
+                        <p className="font-medium text-slate-900">
+                          {user.title}
+                        </p>
                         <p className="truncate text-sm text-slate-500">
-                          {[user.subTitle, user.mobile].filter(Boolean).join(" · ") || "暂无补充信息"}
+                          {[user.subTitle, user.mobile]
+                            .filter(Boolean)
+                            .join(" · ") || "暂无补充信息"}
                         </p>
                       </div>
                       <Checkbox
+                        aria-label={`选择${user.title}`}
                         isSelected={selectedUserIds.includes(user.id)}
                         onValueChange={(selected) =>
                           setSelectedUserIds((prev) =>
                             selected
                               ? [...prev, user.id]
-                              : prev.filter((currentId) => currentId !== user.id),
+                              : prev.filter(
+                                  (currentId) => currentId !== user.id,
+                                ),
                           )
                         }
                       />
-                    </label>
+                    </div>
                   ))
                 )}
               </div>
@@ -868,9 +1004,9 @@ export default function BusinessCategoryPage({
               取消
             </Button>
             <Button
+              className="bg-sky-600 text-white"
               color="primary"
               startContent={<UserPlus className="size-4" />}
-              className="bg-sky-600 text-white"
               onPress={handleAssignmentSubmit}
             >
               确认分配
@@ -879,5 +1015,5 @@ export default function BusinessCategoryPage({
         </ModalContent>
       </Modal>
     </div>
-  )
+  );
 }

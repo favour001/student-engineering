@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { ChevronRight } from "lucide-react"
-import Link from "next/link"
-import { MenuItem } from "@/store"
-import { renderMenuIcon } from "../utils/menuIcon"
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
+import { renderMenuIcon } from "../utils/menuIcon";
+
+import { MenuItem } from "@/store";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -19,32 +20,27 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-export function NavMenuPlatform({
-  items,
-}: {
-  items: MenuItem[]
-}) {
+export function NavMenuPlatform({ items }: { items: MenuItem[] }) {
   if (!items || items.length === 0) {
-    return null
+    return null;
   }
+
   return (
-      <SidebarGroup>
+    <SidebarGroup>
       <SidebarGroupLabel>系统管理</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible
             key={item.id}
             asChild
-            defaultOpen={false}
             className="group/collapsible"
+            defaultOpen={false}
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton 
-                  tooltip={item.name}
-                >
+                <SidebarMenuButton tooltip={item.name}>
                   <span className="flex size-7 items-center justify-center rounded-xl bg-sky-50 ring-1 ring-sky-100">
                     {renderMenuIcon(item.icon)}
                   </span>
@@ -57,7 +53,7 @@ export function NavMenuPlatform({
                   {item.children?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.id}>
                       <SidebarMenuSubButton asChild>
-                        <Link href={subItem.path || '#'}>
+                        <Link href={subItem.path || "#"}>
                           <span className="flex size-6 items-center justify-center rounded-lg bg-white/80 ring-1 ring-slate-200">
                             {renderMenuIcon(subItem.icon)}
                           </span>
@@ -73,5 +69,5 @@ export function NavMenuPlatform({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

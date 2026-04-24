@@ -1,8 +1,9 @@
-"use client"
+"use client";
 
-import React, { CSSProperties, useMemo, useRef } from "react"
-import dynamic from "next/dynamic"
-import { resolveAssetUrl, uploadFile } from "@/utils/upload"
+import React, { CSSProperties, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
+
+import { resolveAssetUrl, uploadFile } from "@/utils/upload";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
@@ -11,15 +12,15 @@ const ReactQuill = dynamic(() => import("react-quill-new"), {
       编辑器加载中...
     </div>
   ),
-}) as any
+}) as any;
 
 type RichTextEditorProps = {
-  label: string
-  value?: string | null
-  folder: string
-  minHeight?: number
-  onChange: (value: string) => void
-}
+  label: string;
+  value?: string | null;
+  folder: string;
+  minHeight?: number;
+  onChange: (value: string) => void;
+};
 
 export function RichTextEditor({
   label,
@@ -28,8 +29,8 @@ export function RichTextEditor({
   minHeight = 350,
   onChange,
 }: RichTextEditorProps) {
-  const quillRef = useRef<any>(null)
-  const editorStyle = { "--editor-height": `${minHeight}px` } as CSSProperties
+  const quillRef = useRef<any>(null);
+  const editorStyle = { "--editor-height": `${minHeight}px` } as CSSProperties;
 
   const modules = useMemo(
     () => ({
@@ -45,38 +46,42 @@ export function RichTextEditor({
         ],
         handlers: {
           image: () => {
-            const input = document.createElement("input")
-            input.type = "file"
-            input.accept = "image/*"
-            input.click()
+            const input = document.createElement("input");
+
+            input.type = "file";
+            input.accept = "image/*";
+            input.click();
             input.onchange = async () => {
-              const file = input.files?.[0]
+              const file = input.files?.[0];
+
               if (!file) {
-                return
+                return;
               }
 
               try {
-                const result = await uploadFile(file, folder)
-                const editor = quillRef.current?.getEditor()
+                const result = await uploadFile(file, folder);
+                const editor = quillRef.current?.getEditor();
+
                 if (!editor) {
-                  return
+                  return;
                 }
-                const range = editor.getSelection(true)
+                const range = editor.getSelection(true);
+
                 editor.insertEmbed(
                   range?.index ?? editor.getLength(),
                   "image",
                   resolveAssetUrl(result.url),
-                )
+                );
               } catch (error) {
-                alert(error instanceof Error ? error.message : "图片上传失败")
+                alert(error instanceof Error ? error.message : "图片上传失败");
               }
-            }
+            };
           },
         },
       },
     }),
     [folder],
-  )
+  );
 
   return (
     <div className="space-y-2 md:col-span-2">
@@ -87,13 +92,15 @@ export function RichTextEditor({
       >
         <ReactQuill
           ref={quillRef}
+          modules={modules}
           theme="snow"
           value={value || ""}
           onChange={onChange}
-          modules={modules}
         />
       </div>
-      <p className="text-xs text-slate-400">编辑区内部滚动，工具栏保持在顶部。</p>
+      <p className="text-xs text-slate-400">
+        编辑区内部滚动，工具栏保持在顶部。
+      </p>
     </div>
-  )
+  );
 }

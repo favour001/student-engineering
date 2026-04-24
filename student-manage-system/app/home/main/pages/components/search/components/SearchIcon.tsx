@@ -25,5 +25,5 @@ export const SearchIcon = (props: any) => {
         strokeWidth={2}
       />
     </svg>
-  )
-}
+  );
+};

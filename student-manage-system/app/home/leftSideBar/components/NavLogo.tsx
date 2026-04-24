@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function NavLogo() {
   return (
@@ -22,5 +22,5 @@ export function NavLogo() {
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

@@ -1,90 +1,90 @@
-import apiClient from "@/utils/request"
-import { normalizePaginatedResponse } from "@/utils/request/pagination"
+import apiClient from "@/utils/request";
+import { normalizePaginatedResponse } from "@/utils/request/pagination";
 
 export interface BusinessContentItem {
-  id: number
-  category: string
-  title: string
-  subTitle?: string | null
-  summary?: string | null
-  content?: string | null
-  coverImage?: string | null
-  externalUrl?: string | null
-  source?: string | null
-  author?: string | null
-  tags?: string | null
-  sortNumber: number
-  status: number
-  mobile?: string | null
-  publishedAt?: string | null
-  startTime?: string | null
-  endTime?: string | null
-  address?: string | null
-  money?: number | null
-  contactName?: string | null
-  contactMobile?: string | null
-  quantity?: number | null
-  extraType?: string | null
-  rule?: string | null
-  membershipDescribe?: string | null
-  discountType?: string | null
-  discount?: string | null
-  relationId?: string | null
-  userId?: string | null
-  useStatus?: string | null
-  createTime?: string
-  updateTime?: string
-  userEnglishName?: string | null
-  orderNumber?: string | null
-  studyCountry?: string | null
-  studySchool?: string | null
-  major?: string | null
-  certificate?: string | null
-  gender?: string | null
-  companyName?: string | null
-  vipFlag?: string | null
-  companyPost?: string | null
-  companyAddress?: string | null
-  auditStatus?: string | null
-  socialPost?: string | null
-  nickName?: string | null
-  email?: string | null
-  nativePlace?: string | null
-  birthday?: string | null
-  displayName?: string | null
-  jobTitle?: string | null
-  memberRank?: string | null
-  backgroundImage?: string | null
-  honorRemark?: string | null
-  companyRemark?: string | null
-  jobRemark?: string | null
+  id: number;
+  category: string;
+  title: string;
+  subTitle?: string | null;
+  summary?: string | null;
+  content?: string | null;
+  coverImage?: string | null;
+  externalUrl?: string | null;
+  source?: string | null;
+  author?: string | null;
+  tags?: string | null;
+  sortNumber: number;
+  status: number;
+  mobile?: string | null;
+  publishedAt?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  address?: string | null;
+  money?: number | null;
+  contactName?: string | null;
+  contactMobile?: string | null;
+  quantity?: number | null;
+  extraType?: string | null;
+  rule?: string | null;
+  membershipDescribe?: string | null;
+  discountType?: string | null;
+  discount?: string | null;
+  relationId?: string | null;
+  userId?: string | null;
+  useStatus?: string | null;
+  createTime?: string;
+  updateTime?: string;
+  userEnglishName?: string | null;
+  orderNumber?: string | null;
+  studyCountry?: string | null;
+  studySchool?: string | null;
+  major?: string | null;
+  certificate?: string | null;
+  gender?: string | null;
+  companyName?: string | null;
+  vipFlag?: string | null;
+  companyPost?: string | null;
+  companyAddress?: string | null;
+  auditStatus?: string | null;
+  socialPost?: string | null;
+  nickName?: string | null;
+  email?: string | null;
+  nativePlace?: string | null;
+  birthday?: string | null;
+  displayName?: string | null;
+  jobTitle?: string | null;
+  memberRank?: string | null;
+  backgroundImage?: string | null;
+  honorRemark?: string | null;
+  companyRemark?: string | null;
+  jobRemark?: string | null;
 }
 
 export interface BusinessContentQueryParams {
-  page?: number
-  limit?: number
-  category: string
-  title?: string
-  status?: string
-  mobile?: string
-  nickName?: string
-  vipFlag?: string
-  auditStatus?: string
+  page?: number;
+  limit?: number;
+  category: string;
+  title?: string;
+  status?: string;
+  mobile?: string;
+  nickName?: string;
+  vipFlag?: string;
+  auditStatus?: string;
 }
 
 export interface BusinessAssignableUser {
-  id: number
-  title: string
-  subTitle?: string | null
-  mobile?: string | null
-  coverImage?: string | null
+  id: number;
+  title: string;
+  subTitle?: string | null;
+  mobile?: string | null;
+  coverImage?: string | null;
 }
 
 export interface BusinessAssignableUserQuery {
-  page?: number
-  limit?: number
-  title?: string
-  mobile?: string
+  page?: number;
+  limit?: number;
+  title?: string;
+  mobile?: string;
 }
 
 const domainRouteMap: Record<string, string> = {
@@ -105,44 +105,51 @@ const domainRouteMap: Record<string, string> = {
   vip: "/student-business/benefit",
   welfare: "/student-business/benefit",
   card: "/student-business/benefit",
-}
+};
 
 function getDomainRoute(category: string) {
-  return domainRouteMap[category] || "/student-business/content"
+  return domainRouteMap[category] || "/student-business/content";
 }
 
 export const contentApi = {
   async getList(params: BusinessContentQueryParams) {
-    const response = await apiClient.get(getDomainRoute(params.category), { params })
-    return normalizePaginatedResponse<BusinessContentItem>(response.data)
+    const response = await apiClient.get(getDomainRoute(params.category), {
+      params,
+    });
+
+    return normalizePaginatedResponse<BusinessContentItem>(response.data);
   },
 
   async getItem(id: number, category: string) {
     const response = await apiClient.get(`${getDomainRoute(category)}/${id}`, {
       params: { category },
-    })
-    return response.data as BusinessContentItem
+    });
+
+    return response.data as BusinessContentItem;
   },
 
   async createItem(data: Partial<BusinessContentItem>) {
-    await apiClient.post(getDomainRoute(String(data.category)), data)
+    await apiClient.post(getDomainRoute(String(data.category)), data);
   },
 
   async updateItem(id: number, data: Partial<BusinessContentItem>) {
-    await apiClient.patch(`${getDomainRoute(String(data.category))}/${id}`, data)
+    await apiClient.patch(
+      `${getDomainRoute(String(data.category))}/${id}`,
+      data,
+    );
   },
 
   async deleteItem(id: number, category: string) {
     await apiClient.delete(`${getDomainRoute(category)}/${id}`, {
       params: { category },
-    })
+    });
   },
 
   async updateStatus(id: number, category: string, status: number) {
     await apiClient.put(`${getDomainRoute(category)}/${id}/status`, {
       category,
       status,
-    })
+    });
   },
 
   async getAssignableCardUsers(
@@ -153,8 +160,9 @@ export const contentApi = {
     const response = await apiClient.get(
       `/student-business/member/wechat-user/assignable-cards/${type}/${cardId}`,
       { params },
-    )
-    return normalizePaginatedResponse<BusinessAssignableUser>(response.data)
+    );
+
+    return normalizePaginatedResponse<BusinessAssignableUser>(response.data);
   },
 
   async assignCardUsers(
@@ -165,7 +173,7 @@ export const contentApi = {
     await apiClient.put(
       `/student-business/member/wechat-user/assignable-cards/${type}/${cardId}`,
       { userIds },
-    )
+    );
   },
 
   async getAssignableMerchantUsers(
@@ -175,26 +183,27 @@ export const contentApi = {
     const response = await apiClient.get(
       `/student-business/content/service-platform/${merchantId}/assignable-users`,
       { params },
-    )
-    return normalizePaginatedResponse<BusinessAssignableUser>(response.data)
+    );
+
+    return normalizePaginatedResponse<BusinessAssignableUser>(response.data);
   },
 
   async assignMerchantUsers(merchantId: number, userIds: number[]) {
     await apiClient.put(
       `/student-business/content/service-platform/${merchantId}/assign-users`,
       { userIds },
-    )
+    );
   },
 
   async assignAllMerchantUsers(merchantId: number) {
     await apiClient.put(
       `/student-business/content/service-platform/${merchantId}/assign-all`,
-    )
+    );
   },
 
   async revokeAllMerchantUsers(merchantId: number) {
     await apiClient.put(
       `/student-business/content/service-platform/${merchantId}/revoke-all`,
-    )
+    );
   },
-}
+};
