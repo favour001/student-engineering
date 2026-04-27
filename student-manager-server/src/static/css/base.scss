@@ -1,0 +1,92 @@
+$designWidth:390;
+@function batchXpTarlationRPX($params...){
+  $result:0;
+  @for $i from 1 through length($params){
+    @if($i == 1){
+      $result:calc(750 * nth($params,$i) / $designWidth)*1rpx
+    }@else {
+      $result : append($result, calc(750 * nth($params,$i) / $designWidth)*1rpx)
+    }
+
+  }
+  @return $result;
+}
+
+$theme-color:#ED7D1D;
+$theme-background:#EFEFEF;
+$gary:#bbbbbb;
+$green:#9BC12C;
+$gary-c4:#c4c4c4;
+
+page{
+  background-color: $theme-background;
+}
+
+.content{
+  height: 100%;
+}
+
+.curtain{
+  width: batchXpTarlationRPX(390);
+  height: batchXpTarlationRPX(200);
+  background-color: $theme-color;
+  position: absolute;
+  top: 0;
+  z-index: -1;
+}
+
+.theme-font-color{
+  color: $theme-color;
+}
+
+.common-box{
+  margin: batchXpTarlationRPX(10);
+  padding: batchXpTarlationRPX(25);
+  background-color: #fff;
+  border-radius: batchXpTarlationRPX(10);
+  box-shadow: batchXpTarlationRPX(0,0,5,0) rgba(0, 0, 0, 0.2);
+}
+
+.common-box-2{
+  margin: batchXpTarlationRPX(10);
+  padding: batchXpTarlationRPX(10);
+  background-color: #fff;
+  border-radius: batchXpTarlationRPX(10);
+}
+
+.footer{
+  height: batchXpTarlationRPX(10);
+}
+
+.divider{
+  border-bottom: batchXpTarlationRPX(1) dotted $gary;
+}
+
+.graphics-item:first-child .graphics{
+  border: none;
+  padding-top: 0;
+}
+.graphics-item:last-child .graphics{
+  padding-bottom: 0;
+}
+
+.margin-bottom-5{
+  margin-bottom: batchXpTarlationRPX(5);
+}
+
+.margin-bottom-10{
+  margin-bottom: batchXpTarlationRPX(10);
+}
+
+button::after{
+  border: none;
+}
+
+.safe-distance-bottom {
+  width: 100%;
+  padding-top: batchXpTarlationRPX(116);
+}
+
+.scroll-view{
+  height: 100vh;
+}

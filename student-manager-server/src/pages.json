@@ -1,0 +1,136 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/welfare/index",
+			"style": {
+				"navigationBarTitleText": "福利"
+			}
+		},
+		{
+			"path": "pages/welfare/detail",
+			"style": {
+				"navigationBarTitleText": "福利详情"
+			}
+		},
+		{
+			"path": "pages/activity/index",
+			"style": {
+				"navigationBarTitleText": "活动"
+			}
+		},
+		{
+			"path": "pages/activity/detail",
+			"style": {
+				"navigationBarTitleText": "活动详情"
+			}
+		},
+		{
+			"path": "pages/mine/index",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
+			"path": "pages/oAArticle/index",
+			"style": {
+				"navigationBarTitleText": "公众号文章"
+			}
+		},
+		{
+			"path": "pages/introduce/index",
+			"style": {
+				"navigationBarTitleText": "协会介绍"
+			}
+		},
+		{
+			"path": "pages/memberStyle/index",
+			"style": {
+				"navigationBarTitleText": "成员风采"
+			}
+		},
+		{
+			"path": "pages/memberStyle/detail"
+		},
+		{
+			"path": "pages/video/index",
+			"style": {
+				"navigationBarTitleText": "视频"
+			}
+		},
+		{
+			"path": "pages/stayInShunDe/index",
+			"style": {
+				"navigationBarTitleText": "留创顺德"
+			}
+		},
+		{
+			"path": "pages/stayInShunDe/detail"
+		},
+		{
+			"path": "pages/application/index",
+			"style": {
+				"navigationBarTitleText": "入会须知"
+			}
+		},
+		{
+			"path": "pages/article/index",
+			"style": {
+				"navigationBarTitleText": "文章详情"
+			}
+		},
+		{
+			"path": "pages/mineinfo/index",
+			"style": {
+				"navigationBarTitleText": "修改登记资料"
+			}
+		},
+		{
+			"path": "pages/customerservice/index",
+			"style": {
+				"navigationBarTitleText": "联系客服"
+			}
+		},
+		{
+			"path": "pages/cardpackage/index",
+			"style": {
+				"navigationBarTitleText": "我的卡包"
+			}
+		},
+		{
+			"path": "pages/cardpackage/detail",
+			"style": {
+				"navigationBarTitleText": "卡包详情"
+			}
+		},
+		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationBarTitleText": "个人档案"
+			}
+		},
+		{
+			"path": "pages/notice/index",
+			"style": {
+				"navigationBarTitleText": "公告"
+			}
+		},
+		{
+			"path": "pages/notice/detail",
+			"style": {
+				"navigationBarTitleText": "公告详情"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}

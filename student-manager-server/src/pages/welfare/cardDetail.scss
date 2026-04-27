@@ -1,0 +1,93 @@
+.welfare-detail{
+  height: 100%;
+  .card-footer{
+    position: fixed;
+    bottom: batchXpTarlationRPX(34);
+    left: batchXpTarlationRPX(15);
+    background-color: #fff;
+    height: batchXpTarlationRPX(60);
+    width: batchXpTarlationRPX(360);
+    border-radius: batchXpTarlationRPX(30);
+    box-shadow: batchXpTarlationRPX(0,0,9,4) rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    .card-click-container{
+      flex: 0 0 batchXpTarlationRPX(120);
+      height: 100%;
+    }
+    .card-btn{
+      width: 100%;
+      font-size: batchXpTarlationRPX(18);
+      height: batchXpTarlationRPX(60);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(45deg, #FFA726, #FB8C00, #F57C00, #EF6C00, #E65100);
+      &.done{
+        background: $gary-c4 ;
+      }
+    }
+    .card-btns{
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      height: 100%;
+      .share{
+        display: flex;
+        align-items: center;
+        height: 100%;
+        button{
+          background-color: #fff;
+          display: flex;
+        }
+        .share-image{
+          height: batchXpTarlationRPX(20);
+          width: batchXpTarlationRPX(20);
+        }
+      }
+    }
+  }
+}
+
+.card-detail-box{
+  border-radius: batchXpTarlationRPX(15);
+  background-color: #fff;
+  margin: batchXpTarlationRPX(10,10,0,10);
+  box-shadow: batchXpTarlationRPX(0,0,10,0) rgba(0, 0, 0, 0.2);
+  .image{
+    height: batchXpTarlationRPX(180);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-bottom: batchXpTarlationRPX(20);
+  }
+  .title{
+    color: #6c6c6c;
+    font-size: batchXpTarlationRPX(16);
+    text-align: center;
+    font-weight: bolder;
+    margin-bottom: batchXpTarlationRPX(10);
+  }
+  .remark{
+    margin: batchXpTarlationRPX(0,10,20);
+  }
+  .footer-content{
+    padding: batchXpTarlationRPX(0,10,20);
+  }
+  .time-rang{
+    text-align: center;
+    font-size: batchXpTarlationRPX(14);
+    font-weight: 700;
+    color: #6c6c6c;
+  }
+  .divider{
+    border-bottom-style: dashed;
+    margin: batchXpTarlationRPX(20,10,30,10);
+  }
+  .common-foot-content{
+    margin: 0 batchXpTarlationRPX(10);
+  }
+}
