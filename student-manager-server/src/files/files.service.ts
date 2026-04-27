@@ -4,8 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as fs from 'fs';
-import * as http from 'http';
-import * as https from 'https';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { createHash, randomUUID } from 'crypto';
@@ -23,10 +21,7 @@ type StoredFile = {
 
 const DEFAULT_STORAGE_DIRNAME = 'file_storage';
 const DEFAULT_PUBLIC_PREFIX = '/image';
-const LEGACY_PUBLIC_PREFIX = '/uploads';
-const DEFAULT_LEGACY_ASSET_SERVER = 'https://43.139.231.122:8888';
-const DEFAULT_LEGACY_FILE_ROOT = '/home/project';
-const DEFAULT_LEGACY_ASSET_TIMEOUT = 15000;
+const UPLOADS_PUBLIC_PREFIX = '/uploads';
 const DEFAULT_STORAGE_WAY = 'LOCAL';
 const DEFAULT_STORAGE_REGION = 'image';
 const DEFAULT_BUCKET = 'image';
@@ -136,37 +131,9 @@ export function normalizeOriginalFileName(originalName: string) {
   return looksLikeMojibake || decodedLooksReadable ? decodedName : originalName;
 }
 
-export function getLegacyAssetServer() {
-  return trimTrailingSlash(
-    process.env.LEGACY_ASSET_SERVER?.trim() || DEFAULT_LEGACY_ASSET_SERVER,
-  );
-}
-
-export function getLegacyFileRoot() {
-  return trimTrailingSlash(
-    process.env.LEGACY_FILE_ROOT?.trim() || DEFAULT_LEGACY_FILE_ROOT,
-  );
-}
-
-export function getLegacyAssetTimeoutMs() {
-  const configuredTimeout = Number(process.env.LEGACY_ASSET_TIMEOUT_MS);
-  return Number.isFinite(configuredTimeout) && configuredTimeout > 0
-    ? configuredTimeout
-    : DEFAULT_LEGACY_ASSET_TIMEOUT;
-}
-
-export function shouldRejectLegacyAssetUnauthorized() {
-  const configuredValue = process.env.LEGACY_ASSET_REJECT_UNAUTHORIZED?.trim();
-  if (!configuredValue) {
-    return false;
-  }
-
-  return configuredValue.toLowerCase() !== 'false';
-}
-
 function stripKnownPublicPrefixes(filePath: string) {
   const normalizedPath = filePath.replace(/\\/g, '/');
-  const knownPrefixes = [getFileStoragePublicPrefix(), LEGACY_PUBLIC_PREFIX];
+  const knownPrefixes = [getFileStoragePublicPrefix(), UPLOADS_PUBLIC_PREFIX];
 
   for (const prefix of knownPrefixes) {
     if (normalizedPath === prefix) {
@@ -400,51 +367,6 @@ export class FilesService {
       absolutePath,
       normalizedPath,
       fileName: path.basename(absolutePath),
-    };
-  }
-
-  resolveLegacyFilePath(filePath: string) {
-    if (!filePath) {
-      throw new BadRequestException('缺少文件路径');
-    }
-
-    const normalizedPath = filePath.replace(/\\/g, '/').trim();
-    if (!normalizedPath) {
-      throw new BadRequestException('缺少文件路径');
-    }
-
-    if (normalizedPath.startsWith('/home/')) {
-      return normalizedPath;
-    }
-
-    if (normalizedPath.startsWith('/image/')) {
-      return `${getLegacyFileRoot()}/${trimLeadingSlash(normalizedPath)}`;
-    }
-
-    throw new BadRequestException('仅支持 /image 或 /home 开头的历史文件路径');
-  }
-
-  buildLegacyDownloadUrl(filePath: string) {
-    const absolutePath = this.resolveLegacyFilePath(filePath);
-    return `${getLegacyAssetServer()}/download?filename=${encodeURIComponent(absolutePath)}`;
-  }
-
-  createLegacyAssetRequest(filePath: string) {
-    const targetUrl = new URL(this.buildLegacyDownloadUrl(filePath));
-    const isHttps = targetUrl.protocol === 'https:';
-
-    return {
-      targetUrl,
-      requestImpl: isHttps ? https : http,
-      requestOptions: {
-        protocol: targetUrl.protocol,
-        hostname: targetUrl.hostname,
-        port: targetUrl.port || (isHttps ? 443 : 80),
-        path: `${targetUrl.pathname}${targetUrl.search}`,
-        method: 'GET',
-        timeout: getLegacyAssetTimeoutMs(),
-        rejectUnauthorized: isHttps ? shouldRejectLegacyAssetUnauthorized() : undefined,
-      },
     };
   }
 

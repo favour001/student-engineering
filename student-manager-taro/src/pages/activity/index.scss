@@ -1,0 +1,105 @@
+.activity-content,
+.activity-detail {
+  padding: 10px;
+}
+
+.activity-item {
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.activity-image {
+  position: relative;
+  height: 170px;
+  background: #f1f1f1 center / cover no-repeat;
+}
+
+.activity-time {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 8px;
+  background: rgba(237, 125, 29, 0.92);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.activity-container {
+  padding: 12px;
+}
+
+.activity-info {
+  display: flex;
+  gap: 12px;
+}
+
+.activity-base {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.icon,
+.local {
+  width: 16px;
+  height: 16px;
+}
+
+.activity-font {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn {
+  align-self: center;
+  min-width: 62px;
+  height: 30px;
+  margin: 0;
+  padding: 0 10px;
+  background: #ed7d1d;
+  color: #fff;
+  font-size: 12px;
+  line-height: 30px;
+}
+
+.activity-finish {
+  background: #c4c4c4;
+}
+
+.section-title {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sign-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sign-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}

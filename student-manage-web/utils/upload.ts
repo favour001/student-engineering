@@ -12,9 +12,6 @@ const getBackendApiUrl = () => {
 };
 const getFilePublicPrefix = () =>
   process.env.NEXT_PUBLIC_FILE_PUBLIC_PREFIX || "/image";
-const getLegacyPreviewPath = () =>
-  process.env.NEXT_PUBLIC_LEGACY_FILE_PREVIEW_PATH ||
-  "/api/files/legacy-preview";
 
 export interface UploadedFileResult {
   originalName: string;
@@ -52,10 +49,6 @@ export function resolveAssetUrl(value?: string | null) {
 
   if (value.startsWith(getFilePublicPrefix())) {
     return value;
-  }
-
-  if (value.startsWith("/home/")) {
-    return `${getBackendUrl()}${getLegacyPreviewPath()}?path=${encodeURIComponent(value)}`;
   }
 
   if (!value.startsWith("/")) {

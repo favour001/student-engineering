@@ -19,6 +19,7 @@ import { SysMenuModule } from './sys-menu/sys-menu.module';
 import { StudentBusinessModule } from './student-business/student-business.module';
 import { PermissionGuard } from './guards/permission.guard';
 import { FilesModule } from './files/files.module';
+import { AppApiModule } from './app-api/app-api.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { FilesModule } from './files/files.module';
     SysMenuModule,
     StudentBusinessModule,
     FilesModule,
+    AppApiModule,
   ],
   controllers: [AppController],
   providers: [AppService,

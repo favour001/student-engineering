@@ -1,0 +1,23 @@
+.profile-avatar {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 14px;
+}
+
+.profile-label {
+  color: #666;
+}
+
+.profile-value {
+  color: #222;
+}

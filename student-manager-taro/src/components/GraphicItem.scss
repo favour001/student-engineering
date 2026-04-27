@@ -1,0 +1,49 @@
+.graphic-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.graphic-item:last-child {
+  border-bottom: 0;
+}
+
+.graphic-cover {
+  flex: 0 0 108px;
+  width: 108px;
+  height: 76px;
+  border-radius: 6px;
+  background: #f1f1f1;
+}
+
+.graphic-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.graphic-title,
+.graphic-summary,
+.graphic-meta {
+  display: block;
+}
+
+.graphic-title {
+  color: #222;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.graphic-summary {
+  margin-top: 6px;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.graphic-meta {
+  margin-top: 8px;
+  color: #999;
+  font-size: 12px;
+}

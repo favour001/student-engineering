@@ -1,0 +1,269 @@
+
+● Webpack █████████████████████████ setup (3%)  
+ watch run
+
+- 即将开始启动编译，请稍等~
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ setup (8%)  
+ compilation
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (10%) 0/4 entries 2/4 dependencie
+s 0/2 modules 1 active 
+ node_modules\webpack-dev-server\client\index.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (10%)  
+ import loader .\node_modules\@tarojs\taro-loader\lib\h5.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (10%) 0/4 entries 30/35 dependenc
+ies 5/21 modules 16 active 
+ node_modules\webpack-dev-server\client\modules\logger\index.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (10%) 0/4 entries 49/81 dependenc
+ies 17/35 modules 11 active 
+ ...aro
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (23%) 1/4 entries 320/417 depende
+ncies 34/97 modules 39 active 
+ ...ng\student-manager-taro\node_modules\html-entities\dist\esm\named-referenc
+es.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (23%) 1/4 entries 343/417 depende
+ncies 34/112 modules 52 active 
+ ...› css-loader › postcss-loader › resolve-url-loader › sass-loader › src\app
+.scss
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 360/536 depende
+ncies 48/125 modules 64 active 
+ ...t-engineering\student-manager-taro\src\static\images\activity\activity-ico
+n.png
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 661/684 depende
+ncies 55/239 modules 58 active 
+ ...ngineering\student-manager-taro\node_modules\core-js-pure\stable\global-th
+is.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 919/970 depende
+ncies 75/273 modules 136 active 
+ ...loader › node_modules\@tarojs\components\dist\components\taro-page-meta-co
+re.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 919/970 depende
+ncies 75/273 modules 137 active 
+ ...r › node_modules\@tarojs\components\dist\components\taro-open-container-co
+re.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 1011/1078 depen
+dencies 75/273 modules 156 active 
+ ...el-loader › node_modules\@tarojs\components\dist\components\taro-slider-co
+re.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 1131/1215 depen
+dencies 75/280 modules 162 active 
+ ...el-loader › node_modules\@tarojs\components\dist\components\taro-switch-co
+re.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 1266/1268 depen
+dencies 75/285 modules 167 active 
+ ...-engineering\student-manager-taro\node_modules\core-js-pure\internals\expo
+rt.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 1400/1416 depen
+dencies 98/300 modules 190 active 
+ ... \.entry\.js$\|exclude: \.system\.entry\.js$\|groupOptions: {}|namespace o
+bject
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 1511/1569 depen
+dencies 147/360 modules 209 active 
+ ...ering\student-manager-taro\node_modules\core-js-pure\internals\try-to-stri
+ng.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (37%) 2/4 entries 1629/1632 depen
+dencies 309/384 modules 75 active 
+ ...-engineering\student-manager-taro\node_modules\core-js-pure\internals\shar
+ed.js
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ building (51%) 3/4 entries 1671/1671 depen
+dencies 359/388 modules 29 active 
+ ...ostcss-loader › resolve-url-loader › sass-loader › src\components\CardList
+.scss
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ sealing (75%) chunk optimization 
+ RemoveEmptyChunksPlugin
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ sealing (89%)  
+ after hashing
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ emitting (98%)  
+ after emit
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+√ Webpack
+  Compiled successfully in 3.29s
+
+- 即将开始启动编译，请稍等~
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttp://127.0.0.1:10086/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mD:\student-engineering\student-manager-taro\dist, D:\student-engineering\student-manager-taro\node_modules\.taro\h5\remote[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+<i> [webpack-dev-middleware] wait until bundle finished: /
+✅  编译成功 2026/4/27 11:00:05
+
+
+● Webpack █████████████████████████ setup (7%) compile 
+ ExternalsPlugin
+
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+● Webpack █████████████████████████ sealing (89%)  
+ hashing
+
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+√ Webpack
+  Compiled successfully in 60.60ms
+
+✅  编译成功 2026/4/27 11:00:06
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    error Command failed with exit code 4294967295.

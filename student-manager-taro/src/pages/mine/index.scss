@@ -1,0 +1,64 @@
+.mine-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 16px;
+  background: #ed7d1d;
+  color: #fff;
+}
+
+.mine-avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.mine-user {
+  flex: 1;
+  min-width: 0;
+}
+
+.mine-name,
+.mine-desc {
+  display: block;
+}
+
+.mine-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mine-desc {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.login-btn {
+  height: 32px;
+  margin: 0;
+  padding: 0 14px;
+  background: #fff;
+  color: #ed7d1d;
+  font-size: 13px;
+  line-height: 32px;
+}
+
+.mine-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 14px;
+}
+
+.mine-menu-item:last-child {
+  border-bottom: 0;
+}
+
+.mine-menu-icon {
+  width: 22px;
+  height: 22px;
+}

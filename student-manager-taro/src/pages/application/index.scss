@@ -1,0 +1,31 @@
+.application-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.application-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.application-logo {
+  width: 50px;
+  height: 50px;
+}
+
+.application-time {
+  display: block;
+  color: #999;
+  font-size: 12px;
+}
+
+.application-content {
+  margin-top: 14px;
+}
+
+.application-btn {
+  width: 100%;
+  margin-top: 30px;
+}

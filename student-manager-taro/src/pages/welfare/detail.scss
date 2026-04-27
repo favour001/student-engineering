@@ -1,0 +1,72 @@
+.welfare-detail {
+  min-height: 100vh;
+  padding-bottom: 76px;
+}
+
+.card-detail-box {
+  margin: 10px;
+  padding: 14px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.detail-cover {
+  height: 190px;
+  border-radius: 8px;
+  background-color: #f1f1f1;
+  background-position: center;
+  background-size: cover;
+}
+
+.detail-title {
+  display: block;
+  margin: 14px 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.valid-time {
+  display: block;
+  margin-top: 14px;
+  color: #666;
+  font-size: 13px;
+}
+
+.rule-box {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+}
+
+.section-title {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.fixed-card-footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.share-image {
+  width: 34px;
+  height: 34px;
+}
+
+.action-btn {
+  flex: 1;
+}
+
+.action-btn.done {
+  background: #c4c4c4;
+}
