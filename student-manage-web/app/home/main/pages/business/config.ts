@@ -63,6 +63,8 @@ export type BusinessExtraField = {
     | "birthday"
     | "displayName"
     | "jobTitle"
+    | "postId"
+    | "deptId"
     | "memberRank"
     | "backgroundImage"
     | "honorRemark"
@@ -185,6 +187,8 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       publishedAtLabel: "加入时间",
       extraFields: [
         { key: "jobTitle", label: "岗位头衔" },
+        { key: "postId", label: "系统岗位", type: "select" },
+        { key: "deptId", label: "系统部门", type: "select" },
         { key: "memberRank", label: "排序文案" },
         { key: "mobile", label: "手机号" },
         { key: "email", label: "邮箱" },

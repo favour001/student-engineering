@@ -53,6 +53,8 @@ export interface BusinessContentItem {
   birthday?: string | null;
   displayName?: string | null;
   jobTitle?: string | null;
+  postId?: number | string | null;
+  deptId?: number | string | null;
   memberRank?: string | null;
   backgroundImage?: string | null;
   honorRemark?: string | null;

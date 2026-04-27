@@ -25,11 +25,12 @@ export default function CustomTabBar({ activeIndex, onChange }: Props) {
   return (
     <View className="custom-tabbar">
       <View className="custom-tabbar-body">
+        <View className="custom-tabbar-active-bg" style={{ transform: `translateX(${activeIndex * 100}%)` }} />
         {tabBarItems.map((item, index) => {
           const active = activeIndex === index
           return (
             <View className="custom-tabbar-item" key={item.text} onClick={() => onChange(index, item.text)}>
-              <View className="custom-tabbar-item-body">
+              <View className={`custom-tabbar-item-body ${active ? 'active-body' : ''}`}>
                 <Image className="custom-tabbar-icon" src={active ? item.selectedIconPath : item.iconPath} mode="aspectFit" />
                 <Text className={`custom-tabbar-text ${active ? 'active' : ''}`}>{item.text}</Text>
               </View>

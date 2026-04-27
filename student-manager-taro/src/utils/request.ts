@@ -4,6 +4,7 @@ import { clearAuthStorage, getGlobalData } from './app'
 export const apiOrigin = __API_ORIGIN__
 export const apiPrefix = __API_PREFIX__
 export const baseURL = `${apiOrigin}${apiPrefix}`
+export const assetOrigin = __ASSET_ORIGIN__
 const filePublicPrefix = '/image'
 const assetFieldNames = new Set([
   'articleUrl',
@@ -126,15 +127,15 @@ export function buildAssetUrl(url = '') {
     return `${baseURL}${url}`
   }
   if (url.startsWith('/nsx-api/image/')) {
-    return `${apiOrigin}${url.replace('/nsx-api', '')}`
+    return `${assetOrigin}${url.replace('/nsx-api', '')}`
   }
   if (url.startsWith('/image/') || url.startsWith('/uploads/') || url.startsWith(filePublicPrefix)) {
-    return `${apiOrigin}${url}`
+    return `${assetOrigin}${url}`
   }
   if (!url.startsWith('/')) {
-    return `${apiOrigin}${filePublicPrefix}/${url}`
+    return `${assetOrigin}${filePublicPrefix}/${url}`
   }
-  return `${apiOrigin}${url}`
+  return `${assetOrigin}${url}`
 }
 
 function normalizeAssetFields<T>(data: T): T {

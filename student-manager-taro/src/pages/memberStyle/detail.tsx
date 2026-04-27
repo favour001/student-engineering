@@ -13,7 +13,7 @@ export default function MemberStyleDetail() {
   useEffect(() => {
     async function load() {
       if (!id) return
-      const data = await commonRequest<any>('GET', `app/user/get/${id}`)
+      const data = await commonRequest<any>('GET', `app/member-style/${id}`)
       setUser(data || {})
     }
     load()
@@ -22,9 +22,9 @@ export default function MemberStyleDetail() {
   return (
     <View className="member-detail common-box">
       <Image className="member-detail-avatar" src={user.avatarUrl || user.avaterUrl} mode="aspectFill" />
-      <Text className="member-detail-name">{user.nickName || user.name}</Text>
+      <Text className="member-detail-name">{user.displayName || user.name}</Text>
       <Text className="member-detail-line">{user.postName || user.deptName || user.company}</Text>
-      <HtmlContent content={user.introduce || user.remark || user.content} />
+      <HtmlContent content={user.introduce || user.honorRemark || user.remark || user.content} />
     </View>
   )
 }

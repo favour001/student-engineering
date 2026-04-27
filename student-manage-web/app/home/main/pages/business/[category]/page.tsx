@@ -31,6 +31,8 @@ import {
   BusinessContentItem,
   contentApi,
 } from "../services/contentApi";
+import { departmentApi } from "../../platform/department/services/departmentApi";
+import { postApi } from "../../platform/post/services/postApi";
 
 const statusMap: Record<
   number,
@@ -87,6 +89,8 @@ const initialFormState: Partial<BusinessContentItem> = {
   birthday: "",
   displayName: "",
   jobTitle: "",
+  postId: "",
+  deptId: "",
   memberRank: "",
   backgroundImage: "",
   honorRemark: "",
@@ -176,6 +180,12 @@ export default function BusinessCategoryPage({
     title?: string;
     mobile?: string;
   }>({});
+  const [postOptions, setPostOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [departmentOptions, setDepartmentOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
 
   const searchFields = useMemo<SearchFieldConfig[]>(
     () =>
@@ -264,6 +274,31 @@ export default function BusinessCategoryPage({
   useEffect(() => {
     fetchList();
   }, [currentPage, pageSize, category, searchParams]);
+
+  useEffect(() => {
+    if (category !== "member-style") {
+      return;
+    }
+
+    postApi.getPosts({ page: 1, limit: 200, status: "0" }).then((result) => {
+      setPostOptions(
+        result.list.map((item) => ({
+          label: item.name,
+          value: String(item.id),
+        })),
+      );
+    });
+    departmentApi.getAllDepartments().then((result) => {
+      setDepartmentOptions(
+        result
+          .filter((item) => item.status === 0)
+          .map((item) => ({
+            label: item.name,
+            value: String(item.id),
+          })),
+      );
+    });
+  }, [category]);
 
   if (!categoryConfig) {
     return (
@@ -506,6 +541,12 @@ export default function BusinessCategoryPage({
 
   const renderExtraField = (field: BusinessExtraField) => {
     const value = formState[field.key];
+    const dynamicOptions =
+      field.key === "postId"
+        ? postOptions
+        : field.key === "deptId"
+          ? departmentOptions
+          : field.options;
 
     if (field.type === "richtext") {
       return (
@@ -566,7 +607,7 @@ export default function BusinessCategoryPage({
             }));
           }}
         >
-          {(field.options || []).map((option) => (
+          {(dynamicOptions || []).map((option) => (
             <SelectItem key={option.value}>{option.label}</SelectItem>
           ))}
         </Select>

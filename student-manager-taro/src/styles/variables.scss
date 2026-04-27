@@ -1,5 +1,12 @@
 $theme-color: #ed7d1d;
-$theme-background: #efefef;
-$gray: #bbbbbb;
-$green: #9bc12c;
+$theme-color-end: #f59e0b;
+$theme-gradient: linear-gradient(135deg, #ed7d1d 0%, #f59e0b 100%);
+$theme-background: #f4f5f7;
+$theme-background-deep: #ebedf0;
+$gray: #c0c4d0;
+$gray-light: #f5f6fa;
+$green: #22c55e;
 $gray-c4: #c4c4c4;
+$card-radius: 14px;
+$shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.10);

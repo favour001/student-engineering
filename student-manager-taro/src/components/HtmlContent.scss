@@ -1,18 +1,26 @@
 .html-content {
-  color: #333;
-  font-size: 14px;
-  line-height: 1.75;
+  color: #2d3048;
+  font-size: 15px;
+  line-height: 1.85;
   word-break: break-word;
 }
 
 .html-content image,
 .html-content img {
   max-width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.html-content a {
+  color: $theme-color;
+  text-decoration: none;
 }
 
 .html-empty {
-  padding: 24px 0;
-  color: #999;
+  padding: 40px 0;
+  color: #b0b4c8;
   text-align: center;
   font-size: 14px;
 }
+

@@ -5,6 +5,7 @@ import GraphicItem from '@/components/GraphicItem'
 import Tabs from '@/components/Tabs'
 import { commonRequest } from '@/utils/request'
 import { normalizePageResult } from '@/utils/pagination'
+import { isUrl } from '@/utils/util'
 import memberStyle from '@/static/images/jingangDistrict/memberstyle.png'
 import memberShipNotice from '@/static/images/jingangDistrict/membershipnotice.png'
 import memberShipApplication from '@/static/images/jingangDistrict/membershipapplication.png'
@@ -62,6 +63,15 @@ export default function Home() {
     if (articleHasMore) loadArticles(articlePage + 1, true)
   })
 
+  const openArticle = (item: any) => {
+    const articleUrl = `${item.articleUrl || item.content || item.contentType || ''}`.trim()
+    if (isUrl(articleUrl)) {
+      Taro.navigateTo({ url: `/pages/oAArticle/index?url=${encodeURIComponent(articleUrl)}&title=${encodeURIComponent(item.title || '')}` })
+      return
+    }
+    Taro.navigateTo({ url: `/pages/article/index?id=${item.id}` })
+  }
+
   return (
     <View className="home content">
       <Swiper className="home-swiper" indicatorDots autoplay circular>
@@ -87,7 +97,9 @@ export default function Home() {
       <View className="grid common-box-2">
         {grids.map((item) => (
           <View className="grid-item" key={item.title} onClick={() => Taro.navigateTo({ url: item.path })}>
-            <Image className="grid-icon" src={item.img} mode="aspectFit" />
+            <View className="grid-icon-wrap">
+              <Image className="grid-icon" src={item.img} mode="aspectFit" />
+            </View>
             <Text className="grid-title">{item.title}</Text>
           </View>
         ))}
@@ -116,7 +128,7 @@ export default function Home() {
               image={item.avaterUrl}
               summary={item.describe || item.summary}
               meta={item.createTime}
-              onClick={() => Taro.navigateTo({ url: `/pages/article/index?id=${item.id}` })}
+              onClick={() => openArticle(item)}
             />
           ))
         ) : (

@@ -20,6 +20,12 @@ export class LxMemberStyle {
   @Column({ type: 'varchar', name: 'job_title', length: 128, nullable: true, comment: '岗位头衔' })
   jobTitle?: string | null;
 
+  @Column({ type: 'bigint', name: 'post_id', nullable: true, comment: '系统岗位ID' })
+  postId?: number | null;
+
+  @Column({ type: 'bigint', name: 'dept_id', nullable: true, comment: '系统部门ID' })
+  deptId?: number | null;
+
   @Column({ type: 'varchar', name: 'member_rank', length: 64, nullable: true, comment: '成员排序文案' })
   memberRank?: string | null;
 

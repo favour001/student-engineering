@@ -20,3 +20,4 @@ declare module '*.gif' {
 
 declare const __API_ORIGIN__: string
 declare const __API_PREFIX__: string
+declare const __ASSET_ORIGIN__: string

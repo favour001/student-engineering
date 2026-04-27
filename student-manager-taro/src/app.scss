@@ -1,31 +1,33 @@
 page {
   min-height: 100%;
   background: $theme-background;
-  color: #222;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1a1d2e;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
 }
 
 .content {
-  min-height: 100vh;
+  min-height: auto;
+  padding-bottom: 0;
 }
 
 .common-box {
-  margin: 10px;
-  padding: 24px;
+  margin: 12px;
+  padding: 20px;
   background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.16);
+  border-radius: $card-radius;
+  box-shadow: $shadow-sm;
 }
 
 .common-box-2 {
-  margin: 10px;
-  padding: 10px;
+  margin: 12px;
+  padding: 12px 16px;
   background: #fff;
-  border-radius: 10px;
+  border-radius: $card-radius;
+  box-shadow: $shadow-sm;
 }
 
 .footer {
-  height: 10px;
+  height: 16px;
 }
 
 .theme-font-color {
@@ -33,7 +35,7 @@ page {
 }
 
 .divider {
-  border-bottom: 1px dotted $gray;
+  border-bottom: 1px solid #f0f2f8;
 }
 
 .margin-bottom-5 {
@@ -45,20 +47,50 @@ page {
 }
 
 .empty {
-  padding: 48px 16px;
-  color: #999;
+  padding: 56px 16px;
+  color: #b0b4c8;
   text-align: center;
   font-size: 14px;
 }
 
 .primary-btn {
-  background: $theme-color;
+  background: $theme-gradient;
   color: #fff;
-  border-radius: 6px;
+  border-radius: 24px;
   font-size: 14px;
-  line-height: 38px;
+  font-weight: 600;
+  line-height: 42px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(237, 125, 29, 0.28);
 }
 
 button::after {
   border: 0;
+}
+
+/* 通用页面顶部标题区域 */
+.page-header {
+  padding: 20px 16px 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1d2e;
+}
+
+/* tag 标签 */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tag-primary {
+  background: rgba(237, 125, 29, 0.12);
+  color: $theme-color;
+}
+
+.tag-green {
+  background: rgba(34, 197, 94, 0.12);
+  color: $green;
 }

@@ -17,18 +17,17 @@ export default function MemberStyle() {
   const loading = useRef(false)
   const pageSize = 10
 
-  const loadUsers = async (nextKeyword = keyword, nextPost = postIndex, nextDept = deptIndex, nextPage = 1, append = false) => {
+  const loadMembers = async (nextKeyword = keyword, nextPost = postIndex, nextDept = deptIndex, nextPage = 1, append = false) => {
     if (loading.current) return
     loading.current = true
     try {
-      const params: Record<string, unknown> = {
-        name: nextKeyword || undefined,
+      const data = await commonRequest<any>('GET', 'app/member-style/list', {}, {
+        keyword: nextKeyword || undefined,
         postId: nextPost >= 0 ? postList[nextPost]?.id : undefined,
         deptId: nextDept >= 0 ? deptList[nextDept]?.id : undefined,
         pageNum: nextPage,
         pageSize
-      }
-      const data = await commonRequest<any>('GET', 'app/user/list', {}, params)
+      })
       const page = normalizePageResult<any>(data, nextPage, pageSize)
       setList((prev) => append ? prev.concat(page.list) : page.list)
       setPageNum(nextPage)
@@ -40,17 +39,17 @@ export default function MemberStyle() {
 
   useEffect(() => {
     async function loadMeta() {
-      const posts = await commonRequest<any[]>('GET', 'app/post/list', {})
-      const depts = await commonRequest<any[]>('GET', 'app/dept/list', {})
+      const posts = await commonRequest<any[]>('GET', 'app/member-style/posts', {})
+      const depts = await commonRequest<any[]>('GET', 'app/member-style/departments', {})
       setPostList(Array.isArray(posts) ? posts : [])
       setDeptList(Array.isArray(depts) ? depts : [])
     }
     loadMeta()
-    loadUsers('', -1, -1)
+    loadMembers('', -1, -1)
   }, [])
 
   useReachBottom(() => {
-    if (hasMore) loadUsers(keyword, postIndex, deptIndex, pageNum + 1, true)
+    if (hasMore) loadMembers(keyword, postIndex, deptIndex, pageNum + 1, true)
   })
 
   return (
@@ -65,27 +64,27 @@ export default function MemberStyle() {
             setKeyword(value)
             setPageNum(1)
             setHasMore(true)
-            loadUsers(value, postIndex, deptIndex)
+            loadMembers(value, postIndex, deptIndex)
           }}
         />
         <View className="filters">
-          <Picker mode="selector" range={postList.map((item) => item.postName || item.name)} onChange={(event) => {
-            const index = Number(event.detail.value)
-            setPostIndex(index)
+          <Picker mode="selector" range={['全部岗位'].concat(postList.map((item) => item.postName || item.name))} onChange={(event) => {
+            const selected = Number(event.detail.value) - 1
+            setPostIndex(selected)
             setPageNum(1)
             setHasMore(true)
-            loadUsers(keyword, index, deptIndex)
+            loadMembers(keyword, selected, deptIndex)
           }}>
-            <Text className="filter-item">{postIndex >= 0 ? (postList[postIndex]?.postName || postList[postIndex]?.name) : '职务'}</Text>
+            <Text className="filter-item">{postIndex >= 0 ? (postList[postIndex]?.postName || postList[postIndex]?.name) : '全部岗位'}</Text>
           </Picker>
-          <Picker mode="selector" range={deptList.map((item) => item.deptName || item.name)} onChange={(event) => {
-            const index = Number(event.detail.value)
-            setDeptIndex(index)
+          <Picker mode="selector" range={['全部部门'].concat(deptList.map((item) => item.deptName || item.name))} onChange={(event) => {
+            const selected = Number(event.detail.value) - 1
+            setDeptIndex(selected)
             setPageNum(1)
             setHasMore(true)
-            loadUsers(keyword, postIndex, index)
+            loadMembers(keyword, postIndex, selected)
           }}>
-            <Text className="filter-item">{deptIndex >= 0 ? (deptList[deptIndex]?.deptName || deptList[deptIndex]?.name) : '部门'}</Text>
+            <Text className="filter-item">{deptIndex >= 0 ? (deptList[deptIndex]?.deptName || deptList[deptIndex]?.name) : '全部部门'}</Text>
           </Picker>
         </View>
       </View>
@@ -93,8 +92,8 @@ export default function MemberStyle() {
       <View className="member-list">
         {list.length ? list.map((item) => (
           <View className="member-card" key={item.id} onClick={() => Taro.navigateTo({ url: `/pages/memberStyle/detail?id=${item.id}` })}>
-            <Image className="member-avatar" src={item.avatarUrl || item.avaterUrl} mode="aspectFill" />
-            <Text className="member-name">{item.nickName || item.name}</Text>
+            <Image className="member-avatar" src={item.avatarUrl} mode="aspectFill" />
+            <Text className="member-name">{item.displayName || item.name}</Text>
             <Text className="member-desc">{item.postName || item.deptName || item.company}</Text>
           </View>
         )) : <View className="empty">暂无成员</View>}

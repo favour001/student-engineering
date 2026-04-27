@@ -1,4 +1,5 @@
 import { Image, Text, View } from '@tarojs/components'
+import { formatTime } from '@/utils/util'
 import './GraphicItem.scss'
 
 type Props = {
@@ -16,7 +17,7 @@ export default function GraphicItem({ title, image, summary, meta, onClick }: Pr
       <View className="graphic-main">
         <Text className="graphic-title">{title || '未命名'}</Text>
         {summary ? <Text className="graphic-summary">{summary}</Text> : null}
-        {meta ? <Text className="graphic-meta">{meta}</Text> : null}
+        {meta ? <Text className="graphic-meta">{formatTime(meta)}</Text> : null}
       </View>
     </View>
   )

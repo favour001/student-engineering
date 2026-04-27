@@ -52,6 +52,8 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           userName: createDto.title,
           displayName: createDto.displayName ?? createDto.subTitle ?? null,
           jobTitle: createDto.jobTitle ?? null,
+          postId: createDto.postId ?? null,
+          deptId: createDto.deptId ?? null,
           memberRank: createDto.memberRank ?? null,
           joinedAt: createDto.publishedAt ? new Date(createDto.publishedAt) : null,
           mobile: createDto.mobile ?? null,
@@ -113,6 +115,15 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           '(member.userName LIKE :title OR member.displayName LIKE :title OR member.jobTitle LIKE :title)',
           { title: `%${query.title}%` },
         );
+      }
+      if (query.postId) {
+        qb.andWhere('member.postId = :postId', { postId: query.postId });
+      }
+      if (query.deptId) {
+        qb.andWhere('member.deptId = :deptId', { deptId: query.deptId });
+      }
+      if (query.status !== undefined) {
+        qb.andWhere('member.status = :status', { status: query.status });
       }
 
       qb.orderBy('member.sortNumber', 'ASC')
@@ -275,6 +286,8 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           ? { displayName: updateDto.displayName ?? updateDto.subTitle ?? null }
           : {}),
         ...(updateDto.jobTitle !== undefined ? { jobTitle: updateDto.jobTitle } : {}),
+        ...(updateDto.postId !== undefined ? { postId: updateDto.postId || null } : {}),
+        ...(updateDto.deptId !== undefined ? { deptId: updateDto.deptId || null } : {}),
         ...(updateDto.memberRank !== undefined
           ? { memberRank: updateDto.memberRank }
           : {}),
@@ -616,6 +629,8 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           : null,
       displayName: entity.displayName ?? null,
       jobTitle: entity.jobTitle ?? null,
+      postId: entity.postId ?? null,
+      deptId: entity.deptId ?? null,
       memberRank: entity.memberRank ?? null,
       email: entity.email ?? null,
       gender: entity.gender ?? null,

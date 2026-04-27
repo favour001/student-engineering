@@ -1,22 +1,57 @@
+.mine {
+  min-height: calc(100vh - 116px);
+  background: linear-gradient(180deg, #fff7ed 0, $theme-background 260px);
+}
+
 .mine-header {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 26px 16px;
-  background: #ed7d1d;
+  gap: 14px;
+  padding: 44px 24px 54px;
+  background: $theme-gradient;
   color: #fff;
+  overflow: hidden;
+
+  /* 装饰圆 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -30px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    right: 60px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+  }
 }
 
 .mine-avatar {
-  width: 62px;
-  height: 62px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .mine-user {
   flex: 1;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .mine-name,
@@ -25,33 +60,63 @@
 }
 
 .mine-name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .mine-desc {
   margin-top: 5px;
-  font-size: 12px;
-  opacity: 0.9;
+  font-size: 13px;
+  opacity: 0.85;
 }
 
 .login-btn {
-  height: 32px;
+  height: 36px;
   margin: 0;
-  padding: 0 14px;
-  background: #fff;
-  color: #ed7d1d;
+  padding: 0 18px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
   font-size: 13px;
-  line-height: 32px;
+  font-weight: 600;
+  line-height: 36px;
+  border-radius: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 菜单卡片 */
+.mine-menu {
+  position: relative;
+  z-index: 2;
+  margin: -28px 16px 0;
+  padding: 8px 18px;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(120, 74, 32, 0.08);
 }
 
 .mine-menu-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 4px;
-  border-bottom: 1px solid #f1f1f1;
-  font-size: 14px;
+  gap: 14px;
+  min-height: 58px;
+  padding: 0 2px;
+  border-bottom: 1px solid #f2f3f6;
+  font-size: 15px;
+  color: #1a1d2e;
+  font-weight: 500;
+  position: relative;
+
+  /* 右箭头 */
+  &::after {
+    content: '›';
+    position: absolute;
+    right: 2px;
+    font-size: 20px;
+    color: #c0c4d0;
+    font-weight: 300;
+  }
 }
 
 .mine-menu-item:last-child {
@@ -59,6 +124,8 @@
 }
 
 .mine-menu-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  opacity: 0.78;
 }

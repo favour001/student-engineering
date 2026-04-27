@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppApiController } from './app-api.controller';
 import { AppApiService } from './app-api.service';
 import { AppRefreshToken } from './entities/app-refresh-token.entity';
+import { AppMemberStyleController } from './member-style/app-member-style.controller';
+import { AppMemberStyleService } from './member-style/app-member-style.service';
 import { LxActivity } from '../student-business/entities/lx-activity.entity';
 import { LxArticle } from '../student-business/entities/lx-article.entity';
 import { LxCard } from '../student-business/entities/lx-card.entity';
@@ -44,7 +46,7 @@ import { SysPost } from '../sys-post/entities/sys-post.entity';
       SysPost,
     ]),
   ],
-  controllers: [AppApiController],
-  providers: [AppApiService],
+  controllers: [AppApiController, AppMemberStyleController],
+  providers: [AppApiService, AppMemberStyleService],
 })
 export class AppApiModule {}

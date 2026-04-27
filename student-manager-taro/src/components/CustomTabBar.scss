@@ -1,29 +1,49 @@
 .custom-tabbar {
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
+  height: 120px;
   z-index: 98;
   pointer-events: none;
 }
 
 .custom-tabbar-body {
   position: fixed;
-  left: 15px;
-  right: 15px;
-  bottom: 34px;
+  left: 16px;
+  right: 16px;
+  bottom: 32px;
   z-index: 1001;
-  height: 62px;
+  height: 66px;
   display: flex;
-  padding-top: 10px;
+  align-items: center;
+  padding: 7px 8px;
   box-sizing: border-box;
-  border-radius: 36px;
-  background: linear-gradient(to right, #fff, #f1edff);
-  box-shadow: 0 0 9px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 34px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.96), rgba(255, 250, 244, 0.96));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 24px rgba(120, 74, 32, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 237, 213, 0.9);
   pointer-events: auto;
 }
 
+.custom-tabbar-active-bg {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 8px;
+  width: calc((100% - 16px) / 4);
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 247, 237, 0.98), rgba(255, 239, 213, 0.98));
+  box-shadow: 0 6px 16px rgba(237, 125, 29, 0.16), inset 0 0 0 1px rgba(255, 215, 174, 0.75);
+  transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.28, 1);
+  will-change: transform;
+}
+
 .custom-tabbar-item {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   justify-content: center;
@@ -31,24 +51,48 @@
 }
 
 .custom-tabbar-item-body {
-  min-width: 56px;
+  position: relative;
+  min-width: 60px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 26px;
+  box-sizing: border-box;
+  transition: transform 0.22s ease;
+}
+
+.custom-tabbar-item-body.active-body {
+  min-width: 74px;
+  transform: translateY(-1px);
 }
 
 .custom-tabbar-icon {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 27px;
+  height: 27px;
   margin: 0 auto;
+  transition: transform 0.22s ease, filter 0.22s ease;
+}
+
+.active-body .custom-tabbar-icon {
+  filter: hue-rotate(118deg) saturate(1.9) brightness(1.08);
+  transform: scale(1.04);
 }
 
 .custom-tabbar-text {
   display: block;
-  margin-top: 4px;
-  color: #999;
-  font-size: 12px;
+  margin-top: 2px;
+  color: #b0b4c8;
+  font-size: 11px;
+  font-weight: 500;
   line-height: 16px;
+  transition: color 0.22s ease, font-weight 0.22s ease;
 }
 
 .custom-tabbar-text.active {
-  color: #645aee;
+  color: $theme-color;
+  font-weight: 700;
 }

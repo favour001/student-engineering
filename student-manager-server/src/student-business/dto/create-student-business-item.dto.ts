@@ -294,6 +294,16 @@ export class CreateStudentBusinessItemDto {
   @MaxLength(128)
   jobTitle?: string;
 
+  @ApiPropertyOptional({ description: '系统岗位ID' })
+  @IsOptional()
+  @IsInt()
+  postId?: number;
+
+  @ApiPropertyOptional({ description: '系统部门ID' })
+  @IsOptional()
+  @IsInt()
+  deptId?: number;
+
   @ApiPropertyOptional({ description: '成员排序文案' })
   @IsOptional()
   @IsString()
