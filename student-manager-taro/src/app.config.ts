@@ -2,7 +2,7 @@ export default defineAppConfig({
   pages: [
     'pages/index/index',
     'pages/welfare/detail',
-    'pages/activity/detail',
+    'pages/merchant/detail',
     'pages/oAArticle/index',
     'pages/introduce/index',
     'pages/memberStyle/index',
@@ -18,7 +18,8 @@ export default defineAppConfig({
     'pages/cardpackage/detail',
     'pages/profile/index',
     'pages/notice/index',
-    'pages/notice/detail'
+    'pages/notice/detail',
+    'pages/maintenance/index'
   ],
   window: {
     backgroundTextStyle: 'light',

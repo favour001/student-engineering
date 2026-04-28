@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from '@tarojs/taro'
 import CommonDetail from '@/components/CommonDetail'
 import { commonRequest } from '@/utils/request'
+import { formatTime } from '@/utils/util'
 
 export default function StayInShunDeDetail() {
   const router = useRouter()
@@ -17,5 +18,5 @@ export default function StayInShunDeDetail() {
     load()
   }, [id])
 
-  return <CommonDetail title={detail.title} time={detail.createTime} content={detail.content || detail.remark} />
+  return <CommonDetail title={detail.tweetTitle || detail.title} time={formatTime(detail.createTime)} content={detail.tweetContent || detail.content || detail.remark} />
 }

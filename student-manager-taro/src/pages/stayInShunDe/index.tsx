@@ -41,8 +41,10 @@ export default function StayInShunDe() {
       <Tabs
         value={tweetType}
         tabs={[
-          { label: '留创顺德', value: 1 },
-          { label: '政策服务', value: 2 }
+          { label: '人才政策', value: 1 },
+          { label: '留创园信息', value: 2 },
+          { label: '创新创业扶持政策', value: 3 },
+          { label: '人才招聘', value: 4 }
         ]}
         onChange={(value) => {
           setList([])

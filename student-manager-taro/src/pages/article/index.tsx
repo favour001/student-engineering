@@ -15,7 +15,7 @@ export default function ArticleDetail() {
       const data = await commonRequest<any>('GET', `app/article/get/${id}`)
       const detail = data || {}
       // 如果文章配置的是公众号链接，用 replace 方式进入 WebView，避免返回时停在空的中间页。
-      const rawContent: string = detail.articleUrl || detail.content || detail.contentType || detail.remark || ''
+      const rawContent: string = detail.articleUrl || ''
       if (isUrl(rawContent)) {
         Taro.redirectTo({ url: `/pages/oAArticle/index?url=${encodeURIComponent(rawContent)}&title=${encodeURIComponent(detail.title || '')}` })
         return
@@ -25,5 +25,5 @@ export default function ArticleDetail() {
     load()
   }, [id])
 
-  return <CommonDetail title={detail.title} time={formatTime(detail.createTime)} content={detail.content || detail.contentType || detail.remark} />
+  return <CommonDetail title={detail.title} time={formatTime(detail.createTime)} content={detail.content || detail.remark} />
 }

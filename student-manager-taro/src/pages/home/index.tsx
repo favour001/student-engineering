@@ -16,9 +16,8 @@ import './index.scss'
 const grids = [
   { title: '协会介绍', img: societyIntroduce, path: '/pages/introduce/index' },
   { title: '成员风采', img: memberStyle, path: '/pages/memberStyle/index' },
-  { title: '入会须知', img: memberShipNotice, path: '/pages/application/index' },
-  { title: '入会申请', img: memberShipApplication, path: '/pages/application/index' },
-  { title: '视频', img: videoIcon, path: '/pages/video/index' }
+  { title: '留创顺德', img: memberShipNotice, path: '/pages/stayInShunDe/index' },
+  { title: '入会申请', img: memberShipApplication, path: '/pages/application/index' }
 ]
 
 export default function Home() {
@@ -72,6 +71,16 @@ export default function Home() {
     Taro.navigateTo({ url: `/pages/article/index?id=${item.id}` })
   }
 
+  const handleGridClick = (path: string) => {
+    if (!path) {
+      Taro.navigateTo({ url: '/pages/maintenance/index' })
+      return
+    }
+    Taro.navigateTo({ url: path }).catch(() => {
+      Taro.navigateTo({ url: '/pages/maintenance/index' })
+    })
+  }
+
   return (
     <View className="home content">
       <Swiper className="home-swiper" indicatorDots autoplay circular>
@@ -96,7 +105,7 @@ export default function Home() {
 
       <View className="grid common-box-2">
         {grids.map((item) => (
-          <View className="grid-item" key={item.title} onClick={() => Taro.navigateTo({ url: item.path })}>
+          <View className="grid-item" key={item.title} onClick={() => handleGridClick(item.path)}>
             <View className="grid-icon-wrap">
               <Image className="grid-icon" src={item.img} mode="aspectFit" />
             </View>
@@ -108,8 +117,8 @@ export default function Home() {
       <Tabs
         value={tab}
         tabs={[
-          { label: '协会动态', value: 1 },
-          { label: '政策资讯', value: 2 }
+          { label: '总会动态', value: 1 },
+          { label: '海外动态', value: 2 }
         ]}
         onChange={(value) => {
           setArticles([])
@@ -126,7 +135,6 @@ export default function Home() {
               key={item.id}
               title={item.title}
               image={item.avaterUrl}
-              summary={item.describe || item.summary}
               meta={item.createTime}
               onClick={() => openArticle(item)}
             />

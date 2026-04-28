@@ -35,12 +35,13 @@ const htmlFieldNames = new Set([
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type Header = Record<string, string | undefined>
+type RequestData = Record<string, unknown>
 
 export async function commonRequest<T = unknown>(
   method: HttpMethod = 'GET',
   url: string,
   header: Header = {},
-  data: Record<string, unknown> = {},
+  data: RequestData = {},
   isShowModel = false
 ): Promise<T | true | false> {
   if (Object.prototype.hasOwnProperty.call(header, 'token') && !header.token) {
@@ -62,7 +63,7 @@ export async function commonRequest<T = unknown>(
       ...(token ? { Authorization: `Bearer ${token}`, token } : {}),
       ...header
     },
-    data
+    data: method === 'GET' ? sanitizeRequestData(data) : data
   })
 
   Taro.hideLoading()
@@ -167,4 +168,13 @@ function normalizeHtmlAssetUrls(html: string) {
   return html.replace(/(<img\b[^>]*?\bsrc=(["']))([^"']+)(\2)/gi, (_match, prefix, _quote, src, suffix) => {
     return `${prefix}${buildAssetUrl(src)}${suffix}`
   })
+}
+
+function sanitizeRequestData(data: RequestData) {
+  return Object.keys(data).reduce<RequestData>((result, key) => {
+    const value = data[key]
+    if (value === undefined || value === null || value === '') return result
+    result[key] = value
+    return result
+  }, {})
 }

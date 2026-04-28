@@ -1,13 +1,25 @@
 .tabs {
   display: flex;
+  align-items: center;
   margin: 0 12px 12px;
   padding: 4px;
+  height: 44px;
+  box-sizing: border-box;
   background: #fff4e8;
   border-radius: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-item {
-  flex: 1;
+  flex: 1 0 auto;
+  min-width: 80px;
+  padding: 0 12px;
   height: 36px;
   color: #7a7f9a;
   text-align: center;

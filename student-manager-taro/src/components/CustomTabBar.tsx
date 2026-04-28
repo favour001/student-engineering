@@ -11,8 +11,8 @@ import './CustomTabBar.scss'
 
 export const tabBarItems = [
   { text: '首页', iconPath: homeOff, selectedIconPath: homeOn },
-  { text: '福利', iconPath: customerOff, selectedIconPath: customerOn },
-  { text: '活动', iconPath: findOff, selectedIconPath: findOn },
+  { text: '会员福利', iconPath: customerOff, selectedIconPath: customerOn },
+  { text: '留学服务', iconPath: findOff, selectedIconPath: findOn },
   { text: '我的', iconPath: workOff, selectedIconPath: workOn }
 ]
 

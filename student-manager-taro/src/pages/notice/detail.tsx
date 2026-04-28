@@ -21,7 +21,7 @@ export default function NoticeDetail() {
     <CommonDetail
       title={detail.noticeTitle}
       time={detail.createTime?.split(' ')[0]}
-      content={detail.noticeContent}
+      content={detail.remark || detail.noticeContent}
     />
   )
 }

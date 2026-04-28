@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { LxMemberStyle } from '../../student-business/entities/lx-member-style.entity';
 import { SysDepartment } from '../../sys-department/entities/sys-department.entity';
 import { SysPost } from '../../sys-post/entities/sys-post.entity';
@@ -26,22 +26,23 @@ export class AppMemberStyleService {
 
   async list(query: MemberStyleQuery) {
     const { pageNum, pageSize } = this.getPage(query);
+    const keyword = this.cleanString(query.keyword);
+    const postId = this.cleanNumber(query.postId);
+    const deptId = this.cleanNumber(query.deptId);
     const qb = this.memberStyleRepo.createQueryBuilder('member')
       .where('member.status = :status', { status: 0 });
 
-    if (query.keyword) {
+    if (keyword) {
       qb.andWhere(
         '(member.userName LIKE :keyword OR member.displayName LIKE :keyword OR member.jobTitle LIKE :keyword OR member.memberRank LIKE :keyword)',
-        { keyword: `%${query.keyword}%` },
+        { keyword: `%${keyword}%` },
       );
     }
 
-    const postId = Number(query.postId || 0);
     if (postId > 0) {
       qb.andWhere('member.postId = :postId', { postId });
     }
 
-    const deptId = Number(query.deptId || 0);
     if (deptId > 0) {
       qb.andWhere('member.deptId = :deptId', { deptId });
     }
@@ -87,17 +88,31 @@ export class AppMemberStyleService {
   }
 
   private getPage(query: MemberStyleQuery) {
-    const pageNum = Math.max(Number(query.pageNum || 1), 1);
-    const pageSize = Math.min(Math.max(Number(query.pageSize || 10), 1), 50);
+    const pageNum = Math.max(this.cleanNumber(query.pageNum) || 1, 1);
+    const pageSize = Math.min(Math.max(this.cleanNumber(query.pageSize) || 10, 1), 50);
     return { pageNum, pageSize };
+  }
+
+  private cleanString(value?: string | number) {
+    if (value === undefined || value === null) return '';
+    const text = String(value).trim();
+    if (!text || text === 'undefined' || text === 'null') return '';
+    return text;
+  }
+
+  private cleanNumber(value?: string | number) {
+    const text = this.cleanString(value);
+    if (!text) return 0;
+    const numberValue = Number(text);
+    return Number.isFinite(numberValue) ? numberValue : 0;
   }
 
   private async getOrgMaps(rows: LxMemberStyle[]) {
     const postIds = Array.from(new Set(rows.map((item) => Number(item.postId || 0)).filter(Boolean)));
     const deptIds = Array.from(new Set(rows.map((item) => Number(item.deptId || 0)).filter(Boolean)));
     const [posts, depts] = await Promise.all([
-      postIds.length ? this.postRepo.findByIds(postIds) : [],
-      deptIds.length ? this.departmentRepo.findByIds(deptIds) : [],
+      postIds.length ? this.postRepo.find({ where: { id: In(postIds) } }) : [],
+      deptIds.length ? this.departmentRepo.find({ where: { id: In(deptIds) } }) : [],
     ]);
     return {
       postMap: new Map<number, SysPost>(posts.map((item) => [item.id, item] as [number, SysPost])),

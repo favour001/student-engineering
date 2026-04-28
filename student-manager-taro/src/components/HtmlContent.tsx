@@ -10,7 +10,18 @@ export default function HtmlContent({ content = '' }: Props) {
 
   return (
     <View className="html-content">
-      <RichText nodes={content} />
+      <RichText nodes={normalizeRichTextImages(content)} />
     </View>
   )
+}
+
+function normalizeRichTextImages(html: string) {
+  return html.replace(/<img\b([^>]*)>/gi, (_match, attrs) => {
+    const cleanedAttrs = String(attrs)
+      .replace(/\sstyle=(["']).*?\1/gi, '')
+      .replace(/\swidth=(["']).*?\1/gi, '')
+      .replace(/\sheight=(["']).*?\1/gi, '')
+      .replace(/\s*\/\s*$/, '')
+    return `<img${cleanedAttrs} style="max-width:100%;width:100%;height:auto;display:block;margin:8px 0;border-radius:8px;" />`
+  })
 }
