@@ -27,24 +27,24 @@ export default function MerchantDetail() {
 
   return (
     <View className="merchant-detail">
-      <View className="merchant-item" style={{ padding: '16px', background: '#fff', borderRadius: '8px', margin: '16px' }}>
+      <View className="merchant-item">
         {detail.avaterUrl ? (
-          <Image src={detail.avaterUrl} mode="widthFix" style={{ width: '100%', borderRadius: '8px' }} />
+          <Image className="merchant-detail-cover" src={detail.avaterUrl} mode="widthFix" />
         ) : null}
-        <View className="merchant-container" style={{ marginTop: '16px' }}>
+        <View className="merchant-container">
           <View className="merchant-info">
             <View className="merchant-base">
-              <View className="merchant-title" style={{ fontSize: '18px', fontWeight: 'bold' }}>
+              <View className="merchant-detail-title">
                 <Text>{detail.title}</Text>
               </View>
-              <Text className="merchant-font" style={{ marginTop: '8px', display: 'block', color: '#999' }}>创建时间：{detail.createTime}</Text>
+              <Text className="merchant-font">创建时间：{detail.createTime}</Text>
             </View>
           </View>
         </View>
       </View>
       <View className="merchant-introduce common-box-2">
         <Text className="section-title">服务详情</Text>
-        <View style={{ overflow: 'hidden', width: '100%', wordWrap: 'break-word' }}>
+        <View className="merchant-rich-content">
           <HtmlContent content={detail.remark} />
         </View>
       </View>

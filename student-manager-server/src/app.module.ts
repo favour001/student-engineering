@@ -20,6 +20,7 @@ import { StudentBusinessModule } from './student-business/student-business.modul
 import { PermissionGuard } from './guards/permission.guard';
 import { FilesModule } from './files/files.module';
 import { AppApiModule } from './app-api/app-api.module';
+import { AppPageMenuModule } from './app-page-menu/app-page-menu.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AppApiModule } from './app-api/app-api.module';
     SysMenuModule,
     StudentBusinessModule,
     FilesModule,
+    AppPageMenuModule,
     AppApiModule,
   ],
   controllers: [AppController],

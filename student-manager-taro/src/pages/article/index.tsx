@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import CommonDetail from '@/components/CommonDetail'
 import { commonRequest } from '@/utils/request'
-import { isUrl, formatTime } from '@/utils/util'
+import { formatTime, isUrl } from '@/utils/util'
 
 export default function ArticleDetail() {
   const router = useRouter()
@@ -13,17 +13,18 @@ export default function ArticleDetail() {
     async function load() {
       if (!id) return
       const data = await commonRequest<any>('GET', `app/article/get/${id}`)
-      const detail = data || {}
-      // 如果文章配置的是公众号链接，用 replace 方式进入 WebView，避免返回时停在空的中间页。
-      const rawContent: string = detail.articleUrl || ''
-      if (isUrl(rawContent)) {
-        Taro.redirectTo({ url: `/pages/oAArticle/index?url=${encodeURIComponent(rawContent)}&title=${encodeURIComponent(detail.title || '')}` })
+      const nextDetail = data || {}
+      const remark = `${nextDetail.remark || ''}`.trim()
+      if (isUrl(remark)) {
+        Taro.redirectTo({
+          url: `/pages/oAArticle/index?url=${encodeURIComponent(remark)}&title=${encodeURIComponent(nextDetail.title || '')}`
+        })
         return
       }
-      setDetail(detail)
+      setDetail(nextDetail)
     }
     load()
   }, [id])
 
-  return <CommonDetail title={detail.title} time={formatTime(detail.createTime)} content={detail.content || detail.remark} />
+  return <CommonDetail title={detail.title} time={formatTime(detail.createTime)} content={detail.remark || detail.content} />
 }

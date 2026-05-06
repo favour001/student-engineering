@@ -76,6 +76,11 @@ export class CreateStudentBusinessItemDto {
   @MaxLength(500)
   tags?: string;
 
+  @ApiPropertyOptional({ description: '业务分类ID' })
+  @IsOptional()
+  @IsInt()
+  categoryId?: number;
+
   @ApiPropertyOptional({ description: '排序', default: 0 })
   @IsOptional()
   @IsInt()

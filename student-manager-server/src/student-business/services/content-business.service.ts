@@ -18,6 +18,7 @@ import { LxUserJin } from '../entities/lx-user-jin.entity';
 import { LxUserNotice } from '../entities/lx-user-notice.entity';
 import { LxVideo } from '../entities/lx-video.entity';
 import { LxWxuser } from '../entities/lx-wxuser.entity';
+import { BusinessContentCategory } from '../entities/business-content-category.entity';
 import { QueryStudentBusinessItemDto } from '../dto/query-student-business-item.dto';
 import { UpdateStudentBusinessItemDto } from '../dto/update-student-business-item.dto';
 import { StudentBusinessDomainService } from './student-business-domain.service';
@@ -45,6 +46,8 @@ export class ContentBusinessService extends StudentBusinessDomainService {
     private readonly merchantUserRepo: Repository<LxMerchantUser>,
     @InjectRepository(LxWxuser)
     private readonly wxuserRepo: Repository<LxWxuser>,
+    @InjectRepository(BusinessContentCategory)
+    private readonly categoryRepo: Repository<BusinessContentCategory>,
   ) {
     super(CONTENT_BUSINESS_CATEGORIES, '内容发布业务');
   }
@@ -59,7 +62,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             title: createDto.title,
             remark: createDto.summary ?? null,
             releases: createDto.status ?? 0,
-            createBy: 'system',
+            createBy: null,
           }),
         );
       case 'article':
@@ -71,7 +74,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             contentType: createDto.content ?? null,
             articleUrl: createDto.externalUrl ?? null,
             orderNumber: createDto.sortNumber ?? 0,
-            createBy: 'system',
+            createBy: null,
           }),
         );
       case 'innovation-shunde':
@@ -81,7 +84,8 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             tweetType: createDto.subTitle ?? null,
             tweetContent: createDto.content ?? null,
             tweetImg: createDto.coverImage ?? null,
-            createBy: 'system',
+            categoryId: createDto.categoryId ?? null,
+            createBy: null,
           }),
         );
       case 'study-abroad-news':
@@ -94,7 +98,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             informationUrl: createDto.externalUrl ?? null,
             type: createDto.source ?? null,
             orderNumber: createDto.sortNumber ?? 0,
-            createBy: 'system',
+            createBy: null,
           }),
         );
       case 'video':
@@ -106,7 +110,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             feeldId: createDto.source ?? null,
             finderUserName: createDto.author ?? null,
             releases: createDto.status ?? 0,
-            createBy: 'system',
+            createBy: null,
           }),
         );
       case 'banner':
@@ -116,7 +120,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             avaterUrl: createDto.coverImage ?? null,
             pointUrl: createDto.externalUrl ?? null,
             releases: createDto.status ?? 0,
-            createBy: 'system',
+            createBy: null,
           }),
         );
       case 'quick-access':
@@ -127,7 +131,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             avaterUrl: createDto.coverImage ?? null,
             pointUrl: createDto.externalUrl ?? null,
             releases: createDto.status ?? 0,
-            createBy: 'system',
+            createBy: null,
           }),
         );
       case 'merchant':
@@ -137,7 +141,8 @@ export class ContentBusinessService extends StudentBusinessDomainService {
             title: createDto.title,
             content: createDto.content ?? createDto.summary ?? null,
             coverUrl: createDto.coverImage ?? null,
-            createBy: 'system',
+            categoryId: createDto.categoryId ?? null,
+            createBy: null,
           }),
         );
       default:
@@ -161,6 +166,12 @@ export class ContentBusinessService extends StudentBusinessDomainService {
     if (config.statusField && query.status !== undefined && query.status !== null) {
       qb.andWhere(`${config.alias}.${config.statusField} = :status`, {
         status: Number(query.status),
+      });
+    }
+
+    if (query.categoryId !== undefined && query.categoryId !== null) {
+      qb.andWhere(`${config.alias}.categoryId = :categoryId`, {
+        categoryId: Number(query.categoryId),
       });
     }
 
@@ -246,6 +257,9 @@ export class ContentBusinessService extends StudentBusinessDomainService {
           ...(updateDto.coverImage !== undefined
             ? { tweetImg: updateDto.coverImage }
             : {}),
+          ...(updateDto.categoryId !== undefined
+            ? { categoryId: updateDto.categoryId || null }
+            : {}),
         });
         break;
       case 'study-abroad-news':
@@ -307,6 +321,9 @@ export class ContentBusinessService extends StudentBusinessDomainService {
           ...(updateDto.coverImage !== undefined
             ? { coverUrl: updateDto.coverImage }
             : {}),
+          ...(updateDto.categoryId !== undefined
+            ? { categoryId: updateDto.categoryId || null }
+            : {}),
         });
         break;
       default:
@@ -341,6 +358,48 @@ export class ContentBusinessService extends StudentBusinessDomainService {
     }
 
     await repo.remove(entity);
+    return { message: '删除成功', id };
+  }
+
+  listCategories(businessKey: string, includeDisabled = false) {
+    return this.categoryRepo.find({
+      where: includeDisabled ? { businessKey } : { businessKey, status: 0 },
+      order: { sortNumber: 'ASC', id: 'ASC' },
+    });
+  }
+
+  async createCategory(body: Partial<BusinessContentCategory>) {
+    if (!body.businessKey || !body.name) {
+      throw new BadRequestException('请填写业务和分类名称');
+    }
+    const code = body.code || this.createCategoryCode(body.name);
+    return this.categoryRepo.save(
+      this.categoryRepo.create({
+        businessKey: body.businessKey,
+        name: body.name,
+        code,
+        sortNumber: Number(body.sortNumber || 0),
+        status: Number(body.status || 0),
+      }),
+    );
+  }
+
+  async updateCategory(id: number, body: Partial<BusinessContentCategory>) {
+    const entity = await this.categoryRepo.findOne({ where: { id } });
+    if (!entity) throw new NotFoundException('分类不存在');
+    Object.assign(entity, {
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.code !== undefined ? { code: body.code || this.createCategoryCode(body.name || entity.name) } : {}),
+      ...(body.sortNumber !== undefined ? { sortNumber: Number(body.sortNumber || 0) } : {}),
+      ...(body.status !== undefined ? { status: Number(body.status || 0) } : {}),
+    });
+    return this.categoryRepo.save(entity);
+  }
+
+  async removeCategory(id: number) {
+    const entity = await this.categoryRepo.findOne({ where: { id } });
+    if (!entity) throw new NotFoundException('分类不存在');
+    await this.categoryRepo.remove(entity);
     return { message: '删除成功', id };
   }
 
@@ -415,7 +474,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
       this.merchantUserRepo.create({
         merchantId: String(merchantId),
         userId: String(userId),
-        createBy: 'system',
+        createBy: null,
       }),
     );
 
@@ -482,7 +541,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
           alias: 'tweet',
           titleField: 'tweetTitle',
           orderField: 'createTime',
-          listSelectFields: ['id', 'tweetTitle', 'tweetType', 'tweetImg', 'createTime'],
+          listSelectFields: ['id', 'tweetTitle', 'tweetType', 'tweetImg', 'categoryId', 'createTime'],
         };
       case 'study-abroad-news':
         return {
@@ -561,6 +620,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
           subTitle: entity.tweetType ?? null,
           content: entity.tweetContent ?? null,
           coverImage: entity.tweetImg ?? null,
+          categoryId: entity.categoryId ?? null,
           sortNumber: 0,
           status: 0,
           createTime: entity.createTime,
@@ -624,6 +684,7 @@ export class ContentBusinessService extends StudentBusinessDomainService {
           content: entity.content ?? null,
           summary: entity.content ?? null,
           coverImage: entity.coverUrl ?? null,
+          categoryId: entity.categoryId ?? null,
           sortNumber: 0,
           status: 0,
           createTime: entity.createTime,
@@ -631,5 +692,14 @@ export class ContentBusinessService extends StudentBusinessDomainService {
       default:
         throw new BadRequestException(`不支持的内容分类: ${category}`);
     }
+  }
+
+  private createCategoryCode(name: string) {
+    return name
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\u4e00-\u9fa5-]/g, '')
+      .slice(0, 80) || `category-${Date.now()}`;
   }
 }

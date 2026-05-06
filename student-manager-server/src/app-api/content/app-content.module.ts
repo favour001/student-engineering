@@ -8,8 +8,10 @@ import { LxArticle } from '../../student-business/entities/lx-article.entity';
 import { LxUserNotice } from '../../student-business/entities/lx-user-notice.entity';
 import { LxTweet } from '../../student-business/entities/lx-tweet.entity';
 import { LxVideo } from '../../student-business/entities/lx-video.entity';
+import { LxUserJin } from '../../student-business/entities/lx-user-jin.entity';
 import { LxXiehui } from '../../student-business/entities/lx-xiehui.entity';
 import { LxRuhui } from '../../student-business/entities/lx-ruhui.entity';
+import { BusinessContentCategory } from '../../student-business/entities/business-content-category.entity';
 
 @Module({
   imports: [
@@ -20,8 +22,10 @@ import { LxRuhui } from '../../student-business/entities/lx-ruhui.entity';
       LxUserNotice,
       LxTweet,
       LxVideo,
+      LxUserJin,
       LxXiehui,
-      LxRuhui
+      LxRuhui,
+      BusinessContentCategory
     ]),
   ],
   controllers: [AppContentController],

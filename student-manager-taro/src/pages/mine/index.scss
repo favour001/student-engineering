@@ -129,3 +129,17 @@
   flex-shrink: 0;
   opacity: 0.78;
 }
+
+.logout-btn {
+  height: 44px;
+  margin: 16px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #f2f3f6;
+  border-radius: 12px;
+  color: #ef4444;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 44px;
+  box-shadow: $shadow-sm;
+}

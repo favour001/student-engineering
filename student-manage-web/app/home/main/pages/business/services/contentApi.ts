@@ -60,6 +60,24 @@ export interface BusinessContentItem {
   honorRemark?: string | null;
   companyRemark?: string | null;
   jobRemark?: string | null;
+  categoryId?: number | string | null;
+  cardTitle?: string | null;
+  cardCoverImage?: string | null;
+  cardType?: string | null;
+  receiveStatus?: string | null;
+  userName?: string | null;
+  userNickName?: string | null;
+  userMobile?: string | null;
+  userAvatar?: string | null;
+}
+
+export interface BusinessCategoryOption {
+  id: number;
+  businessKey: string;
+  name: string;
+  code: string;
+  sortNumber: number;
+  status: number;
 }
 
 export interface BusinessContentQueryParams {
@@ -72,6 +90,7 @@ export interface BusinessContentQueryParams {
   nickName?: string;
   vipFlag?: string;
   auditStatus?: string;
+  categoryId?: string;
 }
 
 export interface BusinessAssignableUser {
@@ -80,6 +99,10 @@ export interface BusinessAssignableUser {
   subTitle?: string | null;
   mobile?: string | null;
   coverImage?: string | null;
+  userAvatar?: string | null;
+  avatarUrl?: string | null;
+  avatar?: string | null;
+  avaterUrl?: string | null;
 }
 
 export interface BusinessAssignableUserQuery {
@@ -207,5 +230,44 @@ export const contentApi = {
     await apiClient.put(
       `/student-business/content/service-platform/${merchantId}/revoke-all`,
     );
+  },
+
+  async getCategories(businessKey: string) {
+    const categoryRoute =
+      businessKey === "vip" || businessKey === "welfare"
+        ? "/student-business/benefit/categories"
+        : "/student-business/content/categories";
+    const response = await apiClient.get(categoryRoute, {
+      params: { businessKey },
+    });
+
+    return response.data as BusinessCategoryOption[];
+  },
+
+  async createCategory(data: Partial<BusinessCategoryOption>) {
+    const categoryRoute =
+      data.businessKey === "vip" || data.businessKey === "welfare"
+        ? "/student-business/benefit/categories"
+        : "/student-business/content/categories";
+
+    await apiClient.post(categoryRoute, data);
+  },
+
+  async updateCategory(id: number, data: Partial<BusinessCategoryOption>) {
+    const categoryRoute =
+      data.businessKey === "vip" || data.businessKey === "welfare"
+        ? "/student-business/benefit/categories"
+        : "/student-business/content/categories";
+
+    await apiClient.patch(`${categoryRoute}/${id}`, data);
+  },
+
+  async deleteCategory(id: number, businessKey?: string) {
+    const categoryRoute =
+      businessKey === "vip" || businessKey === "welfare"
+        ? "/student-business/benefit/categories"
+        : "/student-business/content/categories";
+
+    await apiClient.delete(`${categoryRoute}/${id}`);
   },
 };

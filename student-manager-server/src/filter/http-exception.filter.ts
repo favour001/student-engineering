@@ -14,10 +14,15 @@ export class HttpExceptionFilter implements ExceptionFilter{
 
     const status = exception.getStatus();
 
-    // 根据状态码获取自定义消息，如果没有对应的消息则使用异常原始消息
-    const customMessage = STATUS_CODE_MESSAGE_MAP[status] || exception.message;
+    const exceptionResponse = exception.getResponse?.();
+    const exceptionMessage =
+      typeof exceptionResponse === 'string'
+        ? exceptionResponse
+        : Array.isArray(exceptionResponse?.message)
+          ? exceptionResponse.message.join('；')
+          : exceptionResponse?.message || exception.message;
+    const customMessage = status === 400 ? exceptionMessage : STATUS_CODE_MESSAGE_MAP[status] || exceptionMessage;
 
-
-    response.status(status).json(responseMessage(null, customMessage, status))
+    response.status(status).json(responseMessage(null, status, customMessage))
   }
 }

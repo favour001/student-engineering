@@ -1,3 +1,5 @@
 export default definePageConfig({
-  navigationBarTitleText: '卡包详情'
+  navigationBarTitleText: '卡包详情',
+  enableShareAppMessage: true,
+  enableShareTimeline: true
 })

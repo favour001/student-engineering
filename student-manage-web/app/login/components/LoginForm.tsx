@@ -20,7 +20,11 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login({ account, password });
+    try {
+      await login({ account, password });
+    } catch {
+      // useLogin already stores the display error.
+    }
   };
 
   const isRedirecting = phase === "redirecting";

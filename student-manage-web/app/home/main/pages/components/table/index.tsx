@@ -44,35 +44,38 @@ export function CustomTable({
   const cellRenderer = renderCell || defaultRenderCell;
 
   return (
-    <Table
-      removeWrapper
-      aria-label={ariaLabel}
-      classNames={{
-        th: "bg-slate-50 text-slate-500 text-xs uppercase tracking-[0.16em] border-b border-slate-200",
-        td: "py-4 text-slate-700 border-b border-slate-100",
-        tr: "hover:bg-sky-50/50 transition",
-      }}
-    >
-      <TableHeader columns={columns}>
-        {(column) => (
-          <TableColumn
-            key={column.uid}
-            align={column.align || "start"}
-            allowsSorting={column.sortable}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody emptyContent={emptyContent} items={data}>
-        {(item) => (
-          <TableRow key={item[rowKey]}>
-            {(columnKey) => (
-              <TableCell>{cellRenderer(item, columnKey as string)}</TableCell>
-            )}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <div className="w-full overflow-x-auto">
+      <Table
+        removeWrapper
+        aria-label={ariaLabel}
+        classNames={{
+          table: "min-w-[920px]",
+          th: "bg-slate-50 text-slate-500 text-xs uppercase tracking-[0.16em] border-b border-slate-200 whitespace-nowrap",
+          td: "py-4 text-slate-700 border-b border-slate-100",
+          tr: "hover:bg-sky-50/50 transition",
+        }}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn
+              key={column.uid}
+              align={column.align || "start"}
+              allowsSorting={column.sortable}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody emptyContent={emptyContent} items={data}>
+          {(item) => (
+            <TableRow key={item[rowKey]}>
+              {(columnKey) => (
+                <TableCell>{cellRenderer(item, columnKey as string)}</TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

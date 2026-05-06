@@ -16,6 +16,7 @@ const titleMap: Record<string, string> = {
   user: "用户管理",
   role: "角色管理",
   menu: "菜单管理",
+  "app-menu": "小程序菜单",
   department: "部门管理",
   post: "岗位管理",
   "member-style": "成员风采",
@@ -28,6 +29,7 @@ const titleMap: Record<string, string> = {
   banner: "轮播图管理",
   "service-platform": "留学服务平台",
   "wechat-user": "微信用户信息",
+  "quick-access": "金刚区管理",
 };
 
 export function Header() {

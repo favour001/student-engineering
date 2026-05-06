@@ -16,6 +16,9 @@ export default defineConfig(async (merge) => {
     outputRoot: 'dist',
     framework: 'react',
     compiler: 'webpack5',
+    cache: {
+      enable: true
+    },
     defineConstants: {
       __API_ORIGIN__: JSON.stringify(process.env.TARO_APP_API_ORIGIN || 'http://127.0.0.1:8888'),
       __API_PREFIX__: JSON.stringify(process.env.TARO_APP_API_PREFIX || '/api'),

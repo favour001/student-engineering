@@ -17,6 +17,9 @@ export class LxTweet {
   @Column({ type: 'varchar', name: 'tweet_img', length: 500, nullable: true, comment: '图片' })
   tweetImg?: string | null;
 
+  @Column({ type: 'bigint', name: 'category_id', nullable: true, comment: '业务分类ID' })
+  categoryId?: number | null;
+
   @CreateDateColumn({ type: 'datetime', name: 'create_time' })
   createTime: Date;
 

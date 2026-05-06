@@ -7,9 +7,19 @@ import { AppContentService } from './app-content.service';
 export class AppContentController {
   constructor(private readonly service: AppContentService) {}
 
+    @Get('content-category/list')
+  listCategories(@Query('businessKey') businessKey: string) {
+    return this.service.listCategories(businessKey);
+  }
+
     @Get('banner/list')
   listBanners() {
     return this.service.listBanners();
+  }
+
+    @Get('quick-access/list')
+  listQuickAccess() {
+    return this.service.listQuickAccess();
   }
 
     @Get('banner/info/:id')

@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  HttpCode,
   Post,
   Query,
   Res,
@@ -32,7 +33,7 @@ function createStorage() {
       callback(null, absoluteDir);
     },
     filename: (_req, file, callback) => {
-      callback(null, buildStoredFileName(file.originalname));
+      callback(null, buildStoredFileName(file.originalname, file.mimetype));
     },
   });
 }
@@ -43,6 +44,7 @@ export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @Post('upload')
+  @HttpCode(200)
   @ApiOperation({ summary: '上传文件' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

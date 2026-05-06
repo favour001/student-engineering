@@ -4,6 +4,7 @@ const PATH_ALIAS_MAP: Record<string, string> = {
   "/system/user": "/home/main/pages/platform/user",
   "/system/role": "/home/main/pages/platform/role",
   "/system/menu": "/home/main/pages/platform/menu",
+  "/system/app-menu": "/home/main/pages/platform/app-menu",
   "/system/department": "/home/main/pages/platform/department",
   "/system/post": "/home/main/pages/platform/post",
   "/business/member-style": "/home/main/pages/business/member-style",
@@ -151,9 +152,34 @@ const builtInBusinessMenus: MenuItem[] = [
         sortNumber: 10,
         parentId: -100,
       },
+      {
+        id: -111,
+        name: "金刚区管理",
+        code: "quick-access",
+        type: 2,
+        category: 2,
+        status: 0,
+        icon: "quick-access",
+        path: "/business/quick-access",
+        sortNumber: 11,
+        parentId: -100,
+      },
     ],
   },
 ];
+
+const builtInAppPageMenu: MenuItem = {
+  id: -90,
+  name: "小程序菜单",
+  code: "app-menu",
+  type: 2,
+  category: 1,
+  status: 0,
+  icon: "menu",
+  path: "/home/main/pages/platform/app-menu",
+  sortNumber: 99,
+  parentId: null,
+};
 
 const normalizeMenuPath = (path?: string) => {
   if (!path) {
@@ -254,12 +280,14 @@ export const filterMenusByCategory = (
 
 export const ensureBuiltInMenus = (menus: MenuItem[]): MenuItem[] => {
   const hasBusinessRoot = menus.some((menu) => menu.code === "business");
+  const hasAppMenu = menus.some((menu) => menu.code === "app-menu");
+  const normalizedMenus = menus.map(normalizeMenuNode);
 
-  if (hasBusinessRoot) {
-    return menus.map(normalizeMenuNode);
-  }
+  const result = hasBusinessRoot
+    ? normalizedMenus
+    : [...normalizedMenus, ...builtInBusinessMenus];
 
-  return [...menus.map(normalizeMenuNode), ...builtInBusinessMenus];
+  return hasAppMenu ? result : [...result, builtInAppPageMenu];
 };
 
 /**

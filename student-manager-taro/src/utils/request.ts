@@ -1,11 +1,24 @@
 import Taro from '@tarojs/taro'
-import { clearAuthStorage, getGlobalData } from './app'
+import { clearAuthStorage, getGlobalData, readAuthStorage, saveAuthStorage } from './app'
+
+declare const wx: {
+  uploadFile?: (options: {
+    url: string
+    filePath: string
+    name: string
+    timeout?: number
+    header?: Record<string, string>
+    success?: (result: { statusCode: number; data: string }) => void
+    fail?: (error: unknown) => void
+  }) => void
+} | undefined
 
 export const apiOrigin = __API_ORIGIN__
 export const apiPrefix = __API_PREFIX__
 export const baseURL = `${apiOrigin}${apiPrefix}`
 export const assetOrigin = __ASSET_ORIGIN__
 const filePublicPrefix = '/image'
+const requestTimeout = 15000
 const assetFieldNames = new Set([
   'articleUrl',
   'avatar',
@@ -13,6 +26,7 @@ const assetFieldNames = new Set([
   'avaterUrl',
   'backgroundUrl',
   'bannerUrl',
+  'certificate',
   'coverImage',
   'fuliAvaterUrl',
   'noticeUrl',
@@ -54,17 +68,35 @@ export async function commonRequest<T = unknown>(
     return false
   }
 
-  const token = header.token || Taro.getStorageSync('token') || undefined
-  const res = await Taro.request({
-    method,
-    url: buildApiUrl(url),
-    header: {
-      'content-type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}`, token } : {}),
-      ...header
-    },
-    data: method === 'GET' ? sanitizeRequestData(data) : data
-  })
+  const token = header.token || readAuthStorage().token || undefined
+  let res: Taro.request.SuccessCallbackResult
+  try {
+    res = await Taro.request({
+      method,
+      url: buildApiUrl(url),
+      timeout: requestTimeout,
+      header: {
+        'content-type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}`, token } : {}),
+        ...header
+      },
+      data: method === 'GET' ? sanitizeRequestData(data) : data
+    })
+  } catch (error) {
+    Taro.hideLoading()
+    console.log('request failed', {
+      url,
+      error
+    })
+    if (!isShowModel) {
+      Taro.showModal({
+        title: '温馨提示',
+        content: '请求超时或网络异常，请稍后重试',
+        showCancel: false
+      })
+    }
+    return Promise.reject(error)
+  }
 
   Taro.hideLoading()
 
@@ -74,11 +106,16 @@ export async function commonRequest<T = unknown>(
   }
 
   if (result.code === 401) {
+    console.log('request unauthorized', {
+      url,
+      msg: result.msg || '',
+      hasRefreshToken: Boolean(readAuthStorage().refreshToken)
+    })
     const refreshed = await refreshAccessToken()
     if (refreshed) {
       return commonRequest<T>(method, url, { ...header, token: refreshed }, data, isShowModel)
     }
-    clearAuthStorage()
+    clearAuthStorage(`401 refresh failed: ${url}`)
   }
 
   if (!isShowModel) {
@@ -93,30 +130,159 @@ export async function commonRequest<T = unknown>(
 }
 
 async function refreshAccessToken() {
-  const refreshToken = Taro.getStorageSync('refreshToken')
+  const refreshToken = readAuthStorage().refreshToken
   if (!refreshToken) return ''
 
-  const res = await Taro.request({
-    method: 'POST',
-    url: buildApiUrl('app/wxlogin/refresh'),
-    header: { 'content-type': 'application/json' },
-    data: { refreshToken }
+  console.log('refresh token start', {
+    refreshTokenLength: refreshToken.length
   })
+  let res: Taro.request.SuccessCallbackResult
+  try {
+    res = await Taro.request({
+      method: 'POST',
+      url: buildApiUrl('app/wxlogin/refresh'),
+      timeout: requestTimeout,
+      header: { 'content-type': 'application/json' },
+      data: { refreshToken }
+    })
+  } catch (error) {
+    console.log('refresh token request failed', { error })
+    return ''
+  }
   const result = res.data as { code: number; data?: any }
-  if (result.code !== 200 || !result.data?.token) return ''
+  if (result.code !== 200 || !result.data?.token) {
+    console.log('refresh token failed', {
+      code: result.code,
+      hasToken: Boolean(result.data?.token)
+    })
+    return ''
+  }
 
-  Taro.setStorageSync('token', result.data.token)
-  Taro.setStorageSync('refreshToken', result.data.refreshToken || result.data.refresh_token || refreshToken)
-  Taro.setStorageSync('userId', result.data.id)
+  const auth = saveAuthStorage({
+    token: result.data.token,
+    refreshToken: result.data.refreshToken || result.data.refresh_token || refreshToken,
+    userId: `${result.data.id || ''}`
+  })
   const globalData = getGlobalData()
-  globalData.token = result.data.token
-  globalData.userId = result.data.id
-  return result.data.token
+  globalData.token = auth.token
+  globalData.userId = auth.userId
+  return auth.token
 }
 
 export function buildApiUrl(url: string) {
   const normalizedUrl = url.replace(/^\/+/, '')
   return `${baseURL}/${normalizedUrl}`
+}
+
+export async function uploadFile(filePath: string) {
+  return uploadFileWithToken(filePath, readAuthStorage().token || undefined, true)
+}
+
+async function uploadFileWithToken(filePath: string, token?: string, canRefresh = true) {
+  const uploadUrl = buildApiUrl('files/upload')
+  console.log('upload file start', {
+    url: uploadUrl,
+    filePath,
+    hasToken: Boolean(token)
+  })
+
+  let res: Taro.uploadFile.SuccessCallbackResult
+  try {
+    res = await uploadFileRequest(uploadUrl, filePath, token)
+  } catch (error) {
+    console.log('upload file request failed', {
+      url: uploadUrl,
+      error
+    })
+    throw error
+  }
+
+  console.log('upload file response', {
+    url: uploadUrl,
+    statusCode: res.statusCode,
+    data: res.data
+  })
+
+  const result = parseUploadResult(res.data, {
+    url: uploadUrl,
+    statusCode: res.statusCode
+  })
+
+  if (result.code === 401 && canRefresh) {
+    const refreshed = await refreshAccessToken()
+    if (refreshed) {
+      return uploadFileWithToken(filePath, refreshed, false)
+    }
+    clearAuthStorage(`401 refresh failed: files/upload`)
+  }
+  if ((result.code < 200 || result.code >= 300) || !result.data) {
+    throw new Error(result.msg || '上传失败')
+  }
+  return normalizeUploadFileData(result.data)
+}
+
+function uploadFileRequest(uploadUrl: string, filePath: string, token?: string) {
+  const header: Record<string, string> | undefined = token ? { Authorization: `Bearer ${token}`, token } : undefined
+  const nativeWx = typeof wx !== 'undefined' ? wx : undefined
+
+  if (Taro.getEnv() === Taro.ENV_TYPE.WEAPP && typeof nativeWx?.uploadFile === 'function') {
+    return new Promise<Taro.uploadFile.SuccessCallbackResult>((resolve, reject) => {
+      nativeWx.uploadFile?.({
+        url: uploadUrl,
+        filePath,
+        name: 'file',
+        timeout: requestTimeout,
+        header,
+        success: (result) => resolve(result as Taro.uploadFile.SuccessCallbackResult),
+        fail: (error) => {
+          console.log('wx upload file failed', { error, uploadUrl, filePath })
+          reject(error)
+        }
+      })
+    })
+  }
+
+  return Taro.uploadFile({
+    url: uploadUrl,
+    filePath,
+    name: 'file',
+    timeout: requestTimeout,
+    header
+  })
+}
+
+function parseUploadResult(
+  data: string,
+  context: {
+    url: string
+    statusCode: number
+  }
+) {
+  try {
+    return JSON.parse(`${data || '{}'}`) as {
+      code: number
+      data?: { url?: string; previewUrl?: string; storagePath?: string }
+      msg?: string
+    }
+  } catch (error) {
+    console.log('upload file parse failed', {
+      url: context.url,
+      statusCode: context.statusCode,
+      data,
+      error
+    })
+    throw new Error('上传接口返回格式异常')
+  }
+}
+
+function normalizeUploadFileData(data: { url?: string; previewUrl?: string; downloadUrl?: string; storagePath?: string }) {
+  const normalized = normalizeAssetFields(data)
+  return {
+    ...normalized,
+    url: buildAssetUrl(normalized.url),
+    previewUrl: buildAssetUrl(normalized.previewUrl),
+    downloadUrl: buildAssetUrl(normalized.downloadUrl)
+  }
 }
 
 export function buildAssetUrl(url = '') {

@@ -6,6 +6,7 @@ import { AppCardService } from './app-card.service';
 import { LxCard } from '../../student-business/entities/lx-card.entity';
 import { LxVip } from '../../student-business/entities/lx-vip.entity';
 import { LxWelfare } from '../../student-business/entities/lx-welfare.entity';
+import { BusinessContentCategory } from '../../student-business/entities/business-content-category.entity';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { LxWelfare } from '../../student-business/entities/lx-welfare.entity';
     TypeOrmModule.forFeature([
       LxCard,
       LxVip,
-      LxWelfare
+      LxWelfare,
+      BusinessContentCategory
     ]),
   ],
   controllers: [AppCardController],

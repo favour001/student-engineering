@@ -22,6 +22,6 @@ function normalizeRichTextImages(html: string) {
       .replace(/\swidth=(["']).*?\1/gi, '')
       .replace(/\sheight=(["']).*?\1/gi, '')
       .replace(/\s*\/\s*$/, '')
-    return `<img${cleanedAttrs} style="max-width:100%;width:100%;height:auto;display:block;margin:8px 0;border-radius:8px;" />`
+    return `<img${cleanedAttrs} style="max-width:100%;width:100%;height:auto;display:block;margin:12px 0;border-radius:8px;" />`
   })
 }

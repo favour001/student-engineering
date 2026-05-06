@@ -47,9 +47,7 @@ export class AppAuthService {
     return {
       id: user.id,
       token,
-      accessToken: token,
       refreshToken,
-      refresh_token: refreshToken,
       expiresIn: 3600,
       user: this.mapWxUser(user),
     };
@@ -93,9 +91,7 @@ export class AppAuthService {
     return {
       id: user.id,
       token,
-      accessToken: token,
       refreshToken: nextRefreshToken,
-      refresh_token: nextRefreshToken,
       expiresIn: 3600,
       user: this.mapWxUser(user),
     };

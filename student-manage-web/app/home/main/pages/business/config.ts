@@ -69,7 +69,8 @@ export type BusinessExtraField = {
     | "backgroundImage"
     | "honorRemark"
     | "companyRemark"
-    | "jobRemark";
+    | "jobRemark"
+    | "categoryId";
   label: string;
   type?:
     | "text"
@@ -108,7 +109,10 @@ export interface BusinessCategoryConfig {
       | "mobile"
       | "nickName"
       | "vipFlag"
-      | "auditStatus";
+    | "auditStatus"
+    | "categoryId"
+    | "cardType"
+    | "receiveStatus";
     label: string;
     type: "text" | "select";
     placeholder?: string;
@@ -245,11 +249,10 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       title: "留创顺德",
       subtitle: "维护留创顺德专题内容与展示。",
       primaryLabel: "专题标题",
-      secondaryLabel: "专题类型",
-      secondaryOptions: tweetTypeOptions,
       contentLabel: "专题内容",
       contentInputType: "richtext",
       coverImageLabel: "专题图片",
+      extraFields: [{ key: "categoryId", label: "专题分类", type: "select" }],
     },
     "study-abroad-news": {
       title: "留学资讯",
@@ -286,7 +289,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       primaryLabel: "入口标题",
       summaryLabel: "入口描述",
       coverImageLabel: "入口图片",
-      externalUrlLabel: "跳转地址",
+      externalUrlLabel: "跳转页面",
       enableStatus: true,
     },
     "service-platform": {
@@ -296,6 +299,7 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       contentLabel: "平台内容",
       contentInputType: "richtext",
       coverImageLabel: "封面图片",
+      extraFields: [{ key: "categoryId", label: "服务分类", type: "select" }],
     },
     "wechat-user": {
       title: "微信用户信息",
@@ -386,15 +390,16 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       summaryLabel: "会员卡描述",
       summaryInputType: "richtext",
       coverImageLabel: "图片地址",
-      assignment: {
-        type: "card",
-        title: "分配会员卡",
-      },
       extraFields: [
+        { key: "categoryId", label: "会员卡分类", type: "select" },
         { key: "rule", label: "使用规则", type: "richtext" },
         { key: "startTime", label: "开始时间", type: "datetime-local" },
         { key: "endTime", label: "结束时间", type: "datetime-local" },
       ],
+      assignment: {
+        type: "card",
+        title: "分配会员卡",
+      },
     },
     welfare: {
       title: "福利管理",
@@ -404,11 +409,8 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
       contentLabel: "内容",
       contentInputType: "richtext",
       coverImageLabel: "图片地址",
-      assignment: {
-        type: "card",
-        title: "分配福利券",
-      },
       extraFields: [
+        { key: "categoryId", label: "福利分类", type: "select" },
         { key: "money", label: "金额", type: "number" },
         {
           key: "discountType",
@@ -423,6 +425,10 @@ export const businessCategoryConfigMap: Record<string, BusinessCategoryConfig> =
         { key: "startTime", label: "开始时间", type: "datetime-local" },
         { key: "endTime", label: "结束时间", type: "datetime-local" },
       ],
+      assignment: {
+        type: "card",
+        title: "分配福利券",
+      },
     },
     card: {
       title: "卡包管理",

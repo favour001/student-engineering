@@ -20,6 +20,9 @@ export class LxVip {
   @Column({ type: 'text', nullable: true, comment: '使用规则' })
   rule?: string | null;
 
+  @Column({ type: 'bigint', name: 'category_id', nullable: true, comment: '业务分类ID' })
+  categoryId?: number | null;
+
   @Column({ type: 'datetime', name: 'start_time', nullable: true, comment: '开始时间' })
   startTime?: Date | null;
 

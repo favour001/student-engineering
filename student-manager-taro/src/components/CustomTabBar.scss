@@ -71,15 +71,34 @@
 
 .custom-tabbar-icon {
   display: block;
-  width: 27px;
-  height: 27px;
+  width: 25px;
+  height: 25px;
   margin: 0 auto;
-  transition: transform 0.22s ease, filter 0.22s ease;
+  background: #a9adb6;
+  transition: transform 0.22s ease, background 0.22s ease;
+  -webkit-mask: var(--tabbar-icon) center / 100% 100% no-repeat;
+  mask: var(--tabbar-icon) center / 100% 100% no-repeat;
 }
 
 .active-body .custom-tabbar-icon {
-  filter: hue-rotate(118deg) saturate(1.9) brightness(1.08);
-  transform: scale(1.04);
+  background: $theme-color;
+  transform: scale(1.02);
+}
+
+.custom-tabbar-icon-home {
+  --tabbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 10.8 9-7.1 9 7.1'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9.2 20v-6h5.6v6'/%3E%3C/svg%3E");
+}
+
+.custom-tabbar-icon-gift {
+  --tabbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.85' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12v8H4v-8'/%3E%3Cpath d='M22 7H2v5h20V7Z'/%3E%3Cpath d='M12 22V7'/%3E%3Cpath d='M12 7H7.5a2.5 2.5 0 1 1 2.1-3.9L12 7Z'/%3E%3Cpath d='M12 7h4.5a2.5 2.5 0 1 0-2.1-3.9L12 7Z'/%3E%3C/svg%3E");
+}
+
+.custom-tabbar-icon-graduation {
+  --tabbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.85' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 10 12 5 2 10l10 5 10-5Z'/%3E%3Cpath d='M6 12.5V17c3.6 2.2 8.4 2.2 12 0v-4.5'/%3E%3Cpath d='M22 10v6'/%3E%3Cpath d='M22 16.5v.5'/%3E%3C/svg%3E");
+}
+
+.custom-tabbar-icon-user {
+  --tabbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4.5 21a7.5 7.5 0 0 1 15 0'/%3E%3C/svg%3E");
 }
 
 .custom-tabbar-text {
@@ -87,12 +106,12 @@
   margin-top: 2px;
   color: #b0b4c8;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 16px;
   transition: color 0.22s ease, font-weight 0.22s ease;
 }
 
 .custom-tabbar-text.active {
   color: $theme-color;
-  font-weight: 700;
+  font-weight: 500;
 }

@@ -13,15 +13,32 @@ import societyIntroduce from '@/static/images/jingangDistrict/societyintroduce.p
 import videoIcon from '@/static/images/jingangDistrict/video.png'
 import './index.scss'
 
-const grids = [
+const defaultGrids = [
   { title: '协会介绍', img: societyIntroduce, path: '/pages/introduce/index' },
   { title: '成员风采', img: memberStyle, path: '/pages/memberStyle/index' },
   { title: '留创顺德', img: memberShipNotice, path: '/pages/stayInShunDe/index' },
   { title: '入会申请', img: memberShipApplication, path: '/pages/application/index' }
 ]
 
+const fallbackIconMap: Record<string, string> = {
+  协会介绍: societyIntroduce,
+  成员风采: memberStyle,
+  留创顺德: memberShipNotice,
+  入会申请: memberShipApplication,
+  视频: videoIcon
+}
+
+const fallbackPathMap: Record<string, string> = {
+  协会介绍: '/pages/introduce/index',
+  成员风采: '/pages/memberStyle/index',
+  留创顺德: '/pages/stayInShunDe/index',
+  入会申请: '/pages/application/index',
+  视频: '/pages/video/index'
+}
+
 export default function Home() {
   const [banners, setBanners] = useState<any[]>([])
+  const [grids, setGrids] = useState(defaultGrids)
   const [notice, setNotice] = useState<any>()
   const [tab, setTab] = useState(1)
   const [articles, setArticles] = useState<any[]>([])
@@ -33,8 +50,16 @@ export default function Home() {
   useEffect(() => {
     async function load() {
       const bannerList = (await commonRequest<any[]>('GET', 'app/banner/list')) || []
+      const quickAccessList = (await commonRequest<any[]>('GET', 'app/quick-access/list')) || []
       const noticeList = (await commonRequest<any[]>('GET', 'app/notice/list', {})) || []
       setBanners(Array.isArray(bannerList) ? bannerList : [])
+      if (Array.isArray(quickAccessList) && quickAccessList.length) {
+        setGrids(quickAccessList.map((item) => ({
+          title: item.title,
+          img: item.coverImage || item.avaterUrl || fallbackIconMap[item.title] || memberShipApplication,
+          path: normalizeGridPath(item.path || item.pointUrl, item.title)
+        })))
+      }
       setNotice(Array.isArray(noticeList) ? noticeList[0] : undefined)
     }
     load()
@@ -63,11 +88,6 @@ export default function Home() {
   })
 
   const openArticle = (item: any) => {
-    const articleUrl = `${item.articleUrl || item.content || item.contentType || ''}`.trim()
-    if (isUrl(articleUrl)) {
-      Taro.navigateTo({ url: `/pages/oAArticle/index?url=${encodeURIComponent(articleUrl)}&title=${encodeURIComponent(item.title || '')}` })
-      return
-    }
     Taro.navigateTo({ url: `/pages/article/index?id=${item.id}` })
   }
 
@@ -76,7 +96,14 @@ export default function Home() {
       Taro.navigateTo({ url: '/pages/maintenance/index' })
       return
     }
-    Taro.navigateTo({ url: path }).catch(() => {
+    if (isUrl(path)) {
+      Taro.navigateTo({
+        url: `/pages/oAArticle/index?url=${encodeURIComponent(path)}`
+      })
+      return
+    }
+    const targetPath = path.startsWith('/') ? path : `/${path}`
+    Taro.navigateTo({ url: targetPath }).catch(() => {
       Taro.navigateTo({ url: '/pages/maintenance/index' })
     })
   }
@@ -145,4 +172,12 @@ export default function Home() {
       </View>
     </View>
   )
+}
+
+function normalizeGridPath(path?: string, title?: string) {
+  const value = `${path || ''}`.trim()
+  if (isUrl(value) || value.startsWith('/pages/') || value.startsWith('pages/')) {
+    return value
+  }
+  return fallbackPathMap[`${title || ''}`] || value
 }

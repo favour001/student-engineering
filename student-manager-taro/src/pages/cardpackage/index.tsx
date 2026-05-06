@@ -5,6 +5,7 @@ import CardList, { CardItem } from '@/components/CardList'
 import { commonRequest } from '@/utils/request'
 import { refreshAuthFromStorage } from '@/utils/app'
 import { normalizePageResult } from '@/utils/pagination'
+import { CARD_RECEIVE_STATUS, cardTypeTabs } from '@/constants/card'
 
 export default function CardPackage() {
   const [type, setType] = useState(1)
@@ -21,7 +22,8 @@ export default function CardPackage() {
       const { token, userId } = refreshAuthFromStorage()
       const data = await commonRequest<any>('GET', `app/card/list/${nextType}/${userId}/1`, { token }, { pageNum: nextPage, pageSize })
       const page = normalizePageResult<CardItem>(data, nextPage, pageSize)
-      setList((prev) => append ? prev.concat(page.list) : page.list)
+      const receivedList = page.list.filter((item) => String(item.status || '') === CARD_RECEIVE_STATUS.RECEIVED)
+      setList((prev) => append ? prev.concat(receivedList) : receivedList)
       setPageNum(nextPage)
       setHasMore(page.hasMore)
     } finally {
@@ -41,10 +43,7 @@ export default function CardPackage() {
     <>
       <Tabs
         value={type}
-        tabs={[
-          { label: '会员福利', value: 1 },
-          { label: '普惠福利', value: 2 }
-        ]}
+        tabs={cardTypeTabs}
         onChange={(value) => {
           setList([])
           setPageNum(1)

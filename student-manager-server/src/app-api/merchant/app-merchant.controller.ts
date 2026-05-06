@@ -12,6 +12,11 @@ export class AppMerchantController {
     return this.service.listMerchants(query);
   }
 
+    @Get('merchant/categories')
+  listCategories() {
+    return this.service.listCategories();
+  }
+
     @Get('merchant/get/:id')
   getMerchant(@Param('id') id: string) {
     return this.service.getMerchant(Number(id));

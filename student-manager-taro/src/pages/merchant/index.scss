@@ -1,105 +1,175 @@
-.activity-content,
-.activity-detail {
-  padding: 10px;
-}
-
-.activity-item {
+.merchant-page {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: #f3f5f7;
   overflow: hidden;
-  margin-bottom: 12px;
-  background: #fff;
-  border-radius: 10px;
 }
 
-.activity-image {
+.merchant-sidebar {
+  flex: 0 0 92px;
+  width: 92px;
+  height: 100%;
+  padding: 10px 0 18px;
+  background: #e9edf0;
+  box-sizing: border-box;
+}
+
+.merchant-category {
   position: relative;
-  height: 170px;
-  background: #f1f1f1 center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 8px 12px 8px 14px;
+  color: #637281;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
-.activity-time {
+.merchant-category::before {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 4px 8px;
-  background: rgba(237, 125, 29, 0.92);
-  color: #fff;
-  border-radius: 4px;
-  font-size: 12px;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 0;
+  border-radius: 0 4px 4px 0;
+  background: #ed7d1d;
+  content: '';
 }
 
-.activity-container {
+.merchant-category.active {
+  background: #fff;
+  color: #174b6d;
+  font-weight: 800;
+}
+
+.merchant-category.active::before {
+  width: 4px;
+}
+
+.merchant-list {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: #f7f8fa;
+  box-sizing: border-box;
+}
+
+.merchant-list-inner {
+  padding: 10px 10px calc(132px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.merchant-card {
+  overflow: hidden;
+  margin-bottom: 10px;
+  background: #fff;
+  border: 1px solid #e7ecf0;
+  border-radius: 8px;
+  box-shadow: 0 2px 7px rgba(31, 45, 61, 0.05);
+}
+
+.merchant-cover {
+  display: block;
+  width: 100%;
+  height: 156px;
+  background: #fff;
+}
+
+.merchant-main {
   padding: 12px;
 }
 
-.activity-info {
-  display: flex;
-  gap: 12px;
+.merchant-title,
+.merchant-summary,
+.list-end {
+  display: block;
 }
 
-.activity-base {
-  flex: 1;
-  min-width: 0;
-}
-
-.activity-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+.merchant-title {
+  color: #1e2b37;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 23px;
 }
 
-.icon,
-.local {
-  width: 16px;
-  height: 16px;
+.merchant-summary {
+  margin-top: 7px;
+  color: #637281;
+  font-size: 13px;
+  line-height: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.activity-font {
-  display: block;
-  margin-top: 5px;
-  color: #666;
-  font-size: 12px;
-}
-
-.row {
+.empty {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  min-height: 260px;
+  color: #98a4ae;
+  font-size: 14px;
 }
 
-.btn {
-  align-self: center;
-  min-width: 62px;
-  height: 30px;
-  margin: 0;
-  padding: 0 10px;
-  background: #ed7d1d;
-  color: #fff;
+.list-end {
+  padding: 14px 0 20px;
+  color: #aab2ba;
   font-size: 12px;
-  line-height: 30px;
+  text-align: center;
 }
 
-.activity-finish {
-  background: #c4c4c4;
+.merchant-detail {
+  min-height: 100vh;
+  padding: 16px 16px calc(28px + env(safe-area-inset-bottom));
+  background: #f3f5f7;
+  box-sizing: border-box;
 }
 
-.section-title {
+.merchant-item,
+.merchant-introduce {
+  background: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.merchant-item {
+  padding: 16px;
+}
+
+.merchant-detail-cover {
   display: block;
-  margin-bottom: 10px;
-  font-size: 15px;
-  font-weight: 700;
+  width: 100%;
+  border-radius: 8px;
 }
 
-.sign-users {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.merchant-container {
+  margin-top: 16px;
 }
 
-.sign-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.merchant-detail-title {
+  color: #1e2b37;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 26px;
+}
+
+.merchant-font {
+  display: block;
+  margin-top: 8px;
+  color: #98a4ae;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.merchant-introduce {
+  margin-top: 12px;
+  padding: 16px 16px 20px;
+}
+
+.merchant-rich-content {
+  width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
 }

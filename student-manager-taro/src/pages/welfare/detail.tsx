@@ -1,39 +1,82 @@
 import { useEffect, useState } from 'react'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro, { useLoad, useRouter } from '@tarojs/taro'
 import { Button, Image, Text, View } from '@tarojs/components'
 import HtmlContent from '@/components/HtmlContent'
 import { commonRequest } from '@/utils/request'
 import { getGlobalData, refreshAuthFromStorage } from '@/utils/app'
-import shareIcon from '@/static/images/card/share.png'
+import { formatTime } from '@/utils/util'
+import {
+  CARD_RECEIVE_STATUS,
+  CARD_TYPE,
+  CARD_USE_STATUS,
+  cardReceiveStatusLabelMap,
+  cardUseStatusLabelMap
+} from '@/constants/card'
 import './detail.scss'
 
 export default function WelfareDetail() {
   const router = useRouter()
+  const [routeParams, setRouteParams] = useState(() => ({
+    type: `${router.params.type || '1'}`,
+    cardId: `${router.params.cardId || router.params.id || ''}`
+  }))
   const [detail, setDetail] = useState<any>({})
   const [status, setStatus] = useState<any>()
-  const type = `${router.params.type || '1'}`
-  const cardId = `${router.params.cardId || ''}`
+  const [loading, setLoading] = useState(true)
+  const [errorText, setErrorText] = useState('')
+  const type = routeParams.type
+  const cardId = routeParams.cardId
+
+  useLoad((options) => {
+    setRouteParams({
+      type: `${options.type || '1'}`,
+      cardId: `${options.cardId || options.id || ''}`
+    })
+  })
 
   const loadStatus = async (id: string) => {
-    const { token, userId } = refreshAuthFromStorage()
+    const { userId } = refreshAuthFromStorage()
     if (!userId) return
-    const data = await commonRequest<any>('GET', `app/card/info/${id}/${userId}/${type}`, { token }, {}, true).catch(() => undefined)
-    setStatus(data || undefined)
+    const data = await commonRequest<any>('GET', `app/card/info/${id}/${userId}/${type}`, {}, {}, true).catch(() => undefined)
+    setStatus(data && data !== true && data !== false ? data : undefined)
   }
 
   useEffect(() => {
     async function load() {
-      if (!cardId) return
-      const data = await commonRequest<any>('GET', `app/${type === '1' ? 'vip' : 'welfare'}/info/${cardId}`, {})
-      setDetail(data || {})
-      loadStatus(cardId)
+      setLoading(true)
+      setErrorText('')
+      if (!cardId) {
+        setErrorText('缺少卡券信息')
+        setLoading(false)
+        return
+      }
+      try {
+        console.log('load card detail start', { cardId, type })
+        const data = await commonRequest<any>('GET', `app/card/detail/${type}/${cardId}`, {}, {}, true)
+        if (!data || data === true || data === false) {
+          setErrorText('卡券不存在')
+          return
+        }
+        setDetail(data || {})
+        loadStatus(cardId)
+      } catch (error) {
+        console.log('load card detail failed', { cardId, type, error })
+        setErrorText('详情加载失败')
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [cardId, type])
 
   const receive = async () => {
-    if (!status?.id) return
-    await commonRequest('GET', `app/card/update/receive/${status.id}/${type}`, {})
+    const { userId } = refreshAuthFromStorage()
+    if (!userId) {
+      goToLogin()
+      return
+    }
+    await commonRequest('POST', 'app/card/receive', {}, { cardId: detail.id || cardId, userId, type })
+    Taro.showToast({ title: '领取成功', icon: 'none' })
     loadStatus(detail.id || cardId)
   }
 
@@ -49,36 +92,76 @@ export default function WelfareDetail() {
     Taro.navigateTo({ url: '/pages/index/index?tab=mine' })
   }
 
-  const start = detail.startTime ? detail.startTime.split(' ')[0] : ''
-  const end = detail.endTime ? detail.endTime.split(' ')[0] : ''
+  const start = formatDate(detail.startTime)
+  const end = formatDate(detail.endTime)
+  const validTime = start || end ? `${start || '不限'} 至 ${end || '不限'}` : '长期有效'
+  const receiveStatus = String(status?.status || '')
+  const useStatus = String(status?.useStatus || '')
+
+  if (loading) {
+    return (
+      <View className="welfare-detail">
+        <View className="detail-state">加载中...</View>
+      </View>
+    )
+  }
+
+  if (errorText) {
+    return (
+      <View className="welfare-detail">
+        <View className="detail-state">{errorText}</View>
+      </View>
+    )
+  }
 
   return (
     <View className="welfare-detail">
       <View className="card-detail-box">
-        <View className="detail-cover" style={{ backgroundImage: detail.avaterUrl ? `url(${detail.avaterUrl})` : undefined }} />
-        <Text className="detail-title">{detail.title}</Text>
-        <HtmlContent content={detail.remark} />
-        {start || end ? <Text className="valid-time">有效期：{start} ~ {end}</Text> : null}
+        {detail.avaterUrl ? <Image className="detail-cover" src={detail.avaterUrl} mode="aspectFit" /> : null}
+        <View className="detail-main">
+          <Text className="detail-title">{detail.title || '卡券详情'}</Text>
+          <View className="detail-meta-row">
+            <Text className="detail-meta-label">有效期</Text>
+            <Text className="detail-meta-value">{validTime}</Text>
+          </View>
+          {detail.createTime ? (
+            <View className="detail-meta-row">
+              <Text className="detail-meta-label">发布时间</Text>
+              <Text className="detail-meta-value">{formatTime(detail.createTime)}</Text>
+            </View>
+          ) : null}
+        </View>
+        {detail.remark ? (
+          <View className="detail-section">
+            <Text className="section-title">权益说明</Text>
+            <HtmlContent content={detail.remark} />
+          </View>
+        ) : null}
         {detail.rule ? (
-          <View className="rule-box">
+          <View className="detail-section">
             <Text className="section-title">使用规则</Text>
             <HtmlContent content={detail.rule} />
           </View>
         ) : null}
       </View>
       <View className="fixed-card-footer">
-        <Image className="share-image" src={shareIcon} />
+        <Button className="share-btn" openType="share">分享</Button>
         {status ? (
           <>
-            {status.status === '2' ? <Button className="primary-btn action-btn" onClick={receive}>领取</Button> : null}
-            {type === '1' && status.status === '1' ? <Button className="primary-btn action-btn done">已领取</Button> : null}
-            {type === '2' && status.status === '1' && status.useStatus === '1' ? <Button className="primary-btn action-btn" onClick={useCard}>使用</Button> : null}
-            {type === '2' && status.status === '1' && status.useStatus === '2' ? <Button className="primary-btn action-btn done">已使用</Button> : null}
+            {receiveStatus === CARD_RECEIVE_STATUS.PENDING ? <Button className="primary-btn action-btn" onClick={receive}>点击领取</Button> : null}
+            {type === CARD_TYPE.VIP && receiveStatus === CARD_RECEIVE_STATUS.RECEIVED ? <Button className="primary-btn action-btn done">{cardReceiveStatusLabelMap[receiveStatus]}</Button> : null}
+            {type === CARD_TYPE.WELFARE && receiveStatus === CARD_RECEIVE_STATUS.RECEIVED && useStatus === CARD_USE_STATUS.PENDING ? <Button className="primary-btn action-btn" onClick={useCard}>点击使用</Button> : null}
+            {type === CARD_TYPE.WELFARE && receiveStatus === CARD_RECEIVE_STATUS.RECEIVED && useStatus === CARD_USE_STATUS.USED ? <Button className="primary-btn action-btn done">{cardUseStatusLabelMap[useStatus]}</Button> : null}
           </>
         ) : (
-          <Button className="primary-btn action-btn" onClick={goToLogin}>领取</Button>
+          <Button className="primary-btn action-btn" onClick={receive}>点击领取</Button>
         )}
       </View>
     </View>
   )
+}
+
+function formatDate(value?: string | number | null) {
+  const text = formatTime(value)
+  return text ? text.slice(0, 10) : ''
 }

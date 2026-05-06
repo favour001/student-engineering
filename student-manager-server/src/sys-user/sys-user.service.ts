@@ -107,6 +107,13 @@ export class SysUserService {
       throw new NotFoundException(`用户 ID ${id} 不存在`);
     }
 
+    if (
+      Object.prototype.hasOwnProperty.call(updateSysUserDto, 'password') &&
+      !updateSysUserDto.password?.trim()
+    ) {
+      delete updateSysUserDto.password;
+    }
+
     // Check if updating account and if new account already exists
     if (updateSysUserDto.account && updateSysUserDto.account !== user.account) {
       const existingUser = await this.sysUserRepo.findOne({

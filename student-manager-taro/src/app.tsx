@@ -1,5 +1,6 @@
 import { PropsWithChildren } from 'react'
 import Taro, { useLaunch } from '@tarojs/taro'
+import { readAuthStorage } from '@/utils/app'
 import './app.scss'
 
 export type GlobalData = {
@@ -15,9 +16,10 @@ export type GlobalData = {
 function App({ children }: PropsWithChildren) {
   useLaunch(() => {
     const app = Taro.getApp()
+    const auth = readAuthStorage()
     app.globalData = {
-      token: Taro.getStorageSync('token') || '',
-      userId: Taro.getStorageSync('userId') || '',
+      token: auth.token,
+      userId: auth.userId,
       toLogin: true,
       card: {
         cardId: '',

@@ -22,6 +22,30 @@ import { BenefitBusinessService } from '../services/benefit-business.service';
 export class BenefitBusinessController {
   constructor(private readonly benefitBusinessService: BenefitBusinessService) {}
 
+  @Get('categories')
+  @ApiOperation({ summary: '查询权益卡券业务分类' })
+  listCategories(@Query('businessKey') businessKey: string) {
+    return this.benefitBusinessService.listCategories(businessKey, true);
+  }
+
+  @Post('categories')
+  @ApiOperation({ summary: '新增权益卡券业务分类' })
+  createCategory(@Body() body: any) {
+    return this.benefitBusinessService.createCategory(body);
+  }
+
+  @Patch('categories/:id')
+  @ApiOperation({ summary: '更新权益卡券业务分类' })
+  updateCategory(@Param('id') id: string, @Body() body: any) {
+    return this.benefitBusinessService.updateCategory(+id, body);
+  }
+
+  @Delete('categories/:id')
+  @ApiOperation({ summary: '删除权益卡券业务分类' })
+  removeCategory(@Param('id') id: string) {
+    return this.benefitBusinessService.removeCategory(+id);
+  }
+
   @Post()
   @ApiOperation({ summary: '新增权益卡券业务数据' })
   create(@Body() body: CreateStudentBusinessItemDto) {

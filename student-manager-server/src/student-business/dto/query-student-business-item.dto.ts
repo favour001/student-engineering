@@ -41,6 +41,12 @@ export class QueryStudentBusinessItemDto {
   @IsInt()
   status?: number;
 
+  @ApiPropertyOptional({ description: '业务分类ID' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  categoryId?: number;
+
   @ApiPropertyOptional({ description: '系统岗位ID' })
   @IsOptional()
   @Type(() => Number)

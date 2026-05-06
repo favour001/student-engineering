@@ -36,6 +36,9 @@ export const authService = {
         const errorMessage =
           error.response?.data?.msg ||
           error.response?.data?.message ||
+          (error.response?.status === 401
+            ? "账号或密码错误，或账号已被禁用"
+            : undefined) ||
           "登录失败";
 
         throw new Error(errorMessage);

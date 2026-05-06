@@ -69,7 +69,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           socialPostRemark: createDto.socialPost ?? null,
           sortNumber: createDto.sortNumber ?? 0,
           status: createDto.status ?? 0,
-          createBy: 'system',
+          createBy: null,
           createTime: new Date(),
           updateBy: 'system',
           updateTime: new Date(),
@@ -83,7 +83,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           title: createDto.title,
           remark: createDto.summary ?? null,
           avaterUrl: createDto.coverImage ?? null,
-          createBy: 'system',
+          createBy: null,
         }),
       );
     }
@@ -94,7 +94,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           title: createDto.title,
           remark: createDto.summary ?? null,
           avaterUrl: createDto.coverImage ?? null,
-          createBy: 'system',
+          createBy: null,
         }),
       );
     }
@@ -503,7 +503,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         type: typeCode,
         status: '2',
         useStatus: cardType === 'welfare' ? '1' : null,
-        createBy: 'system',
+        createBy: null,
       }),
     );
 
@@ -569,7 +569,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         : {}),
       ...(payload.author !== undefined ? { wxopenid: payload.author } : {}),
       ...(payload.content !== undefined ? { archives: payload.content } : {}),
-      createBy: 'system',
+      createBy: null,
     };
   }
 

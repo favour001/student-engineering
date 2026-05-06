@@ -98,9 +98,31 @@ export function createTargetFolder(folder?: string) {
   };
 }
 
-export function buildStoredFileName(originalName: string) {
+function resolveExtensionFromMimeType(mimeType?: string) {
+  const normalizedMimeType = mimeType?.toLowerCase().split(';')[0].trim();
+
+  switch (normalizedMimeType) {
+    case 'image/jpeg':
+    case 'image/jpg':
+      return '.jpg';
+    case 'image/png':
+      return '.png';
+    case 'image/webp':
+      return '.webp';
+    case 'image/gif':
+      return '.gif';
+    case 'image/bmp':
+      return '.bmp';
+    case 'image/svg+xml':
+      return '.svg';
+    default:
+      return '';
+  }
+}
+
+export function buildStoredFileName(originalName: string, mimeType?: string) {
   const normalizedOriginalName = normalizeOriginalFileName(originalName);
-  const extension = path.extname(normalizedOriginalName);
+  const extension = path.extname(normalizedOriginalName) || resolveExtensionFromMimeType(mimeType);
   const baseName = path.basename(normalizedOriginalName, extension);
   const sanitizedBaseName =
     baseName

@@ -3,6 +3,11 @@
 import React, { CSSProperties, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 
+import {
+  fileMatchesAccept,
+  IMAGE_UPLOAD_ACCEPT,
+  IMAGE_UPLOAD_ACCEPT_LABEL,
+} from "./file-upload-field";
 import { resolveAssetUrl, uploadFile } from "@/utils/upload";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
@@ -49,12 +54,17 @@ export function RichTextEditor({
             const input = document.createElement("input");
 
             input.type = "file";
-            input.accept = "image/*";
+            input.accept = IMAGE_UPLOAD_ACCEPT;
             input.click();
             input.onchange = async () => {
               const file = input.files?.[0];
 
               if (!file) {
+                return;
+              }
+
+              if (!fileMatchesAccept(file, IMAGE_UPLOAD_ACCEPT)) {
+                alert(`请选择 ${IMAGE_UPLOAD_ACCEPT_LABEL} 格式的图片。`);
                 return;
               }
 

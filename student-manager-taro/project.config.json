@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "student-manager-taro",
   "description": "Taro React version of student-manager-moblie",
-  "appid": "touristappid",
+  "appid": "wx8c8d6e932dcb45e0",
   "setting": {
     "urlCheck": false,
     "es6": true,

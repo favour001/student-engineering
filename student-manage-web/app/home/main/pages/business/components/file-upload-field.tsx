@@ -13,6 +13,41 @@ import {
 
 import { resolveAssetUrl, uploadFile } from "@/utils/upload";
 
+const MAX_IMAGE_UPLOAD_SIZE = 520 * 1024;
+export const IMAGE_UPLOAD_ACCEPT =
+  "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
+export const IMAGE_UPLOAD_ACCEPT_LABEL = "JPG、PNG、WebP";
+
+export function fileMatchesAccept(file: File, accept: string) {
+  if (!accept || accept === "*/*") {
+    return true;
+  }
+
+  const acceptItems = accept
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (acceptItems.length === 0) {
+    return true;
+  }
+
+  const fileType = file.type.toLowerCase();
+  const fileName = file.name.toLowerCase();
+
+  return acceptItems.some((item) => {
+    if (item.startsWith(".")) {
+      return fileName.endsWith(item);
+    }
+
+    if (item.endsWith("/*")) {
+      return fileType.startsWith(item.slice(0, -1));
+    }
+
+    return fileType === item;
+  });
+}
+
 type FileUploadFieldProps = {
   label: string;
   value?: string | null;
@@ -60,6 +95,28 @@ export function FileUploadField({
     const file = event.target.files?.[0];
 
     if (!file) {
+      return;
+    }
+
+    const isSelectedImage =
+      file.type.startsWith("image/") || accept.includes("image");
+    if (!fileMatchesAccept(file, accept)) {
+      alert(
+        isSelectedImage
+          ? `请选择${IMAGE_UPLOAD_ACCEPT_LABEL}格式的图片。`
+          : "请选择符合要求格式的文件。",
+      );
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    if (isSelectedImage && file.size > MAX_IMAGE_UPLOAD_SIZE) {
+      alert("图片大小请控制在 500KB 左右，过大的图片会明显影响小程序加载速度。");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
@@ -111,7 +168,7 @@ export function FileUploadField({
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
                   {isImageField
-                    ? "建议使用清晰、较小尺寸的图片。"
+                    ? `支持${IMAGE_UPLOAD_ACCEPT_LABEL}，大小控制在 500KB 左右。`
                     : "支持手动粘贴文件地址。"}
                 </p>
               </div>
@@ -130,7 +187,8 @@ export function FileUploadField({
               />
             ) : (
               <p className="text-xs text-slate-400">
-                上传后会自动写入图片地址，当前字段不再显示冗余路径输入框。
+                上传后会自动写入图片地址。仅支持{IMAGE_UPLOAD_ACCEPT_LABEL}，图片大小超过约
+                500KB 时会被拦截。
               </p>
             )}
           </div>

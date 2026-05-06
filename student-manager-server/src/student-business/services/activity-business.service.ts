@@ -48,16 +48,19 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
           createDto.status !== undefined && createDto.status !== null
             ? String(createDto.status)
             : '0',
-        createBy: 'system',
+        createBy: null,
       });
 
       return this.activityRepo.save(entity);
     }
 
     const entity = this.signRepo.create({
-      userId: createDto.title,
-      activityId: createDto.subTitle ?? createDto.relationId ?? '',
-      createBy: 'system',
+      userId: this.normalizeBigIntString(createDto.title, '报名人ID'),
+      activityId: this.normalizeBigIntString(
+        createDto.subTitle ?? createDto.relationId,
+        '活动ID',
+      ),
+      createBy: null,
     });
 
     return this.signRepo.save(entity);
@@ -247,9 +250,16 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
     }
 
     Object.assign(entity, {
-      ...(updateDto.title !== undefined ? { userId: updateDto.title } : {}),
+      ...(updateDto.title !== undefined
+        ? { userId: this.normalizeBigIntString(updateDto.title, '报名人ID') }
+        : {}),
       ...(updateDto.subTitle !== undefined || updateDto.relationId !== undefined
-        ? { activityId: updateDto.subTitle ?? updateDto.relationId ?? entity.activityId }
+        ? {
+            activityId: this.normalizeBigIntString(
+              updateDto.subTitle ?? updateDto.relationId ?? entity.activityId,
+              '活动ID',
+            ),
+          }
         : {}),
     });
 
@@ -280,5 +290,13 @@ export class ActivityBusinessService extends StudentBusinessDomainService {
 
   async updateStatus(_id: number, _category: string, _status: number) {
     throw new BadRequestException('活动业务域暂不支持统一状态切换接口');
+  }
+
+  private normalizeBigIntString(value: unknown, label: string) {
+    const normalized = `${value ?? ''}`.trim();
+    if (!/^\d+$/.test(normalized)) {
+      throw new BadRequestException(`${label}必须是数字`);
+    }
+    return normalized;
   }
 }

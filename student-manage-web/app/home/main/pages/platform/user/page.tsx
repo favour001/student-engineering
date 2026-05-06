@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import {
   User,
   Chip,
@@ -21,7 +22,10 @@ import { Search, SearchFieldConfig } from "../../components/search";
 import { Page } from "../../components/page";
 import { CustomTable, ColumnConfig } from "../../components/table";
 import { roleApi, RoleData } from "../role/services/roleApi";
-import { FileUploadField } from "../../business/components/file-upload-field";
+import {
+  FileUploadField,
+  IMAGE_UPLOAD_ACCEPT,
+} from "../../business/components/file-upload-field";
 import {
   systemStatusChipMap,
   systemStatusOptions,
@@ -34,6 +38,7 @@ import {
 import { userApi, UserData, UserQueryParams } from "./services/userApi";
 
 import { EyeIcon, DeleteIcon, EditIcon } from "@/components/table-action-icons";
+import { appStore } from "@/store";
 import { resolveAssetUrl } from "@/utils/upload";
 
 type UserFormState = Partial<UserData> & {
@@ -84,6 +89,15 @@ const columns: ColumnConfig[] = [
   { name: "入职/创建时间", uid: "createTime", sortable: true },
   { name: "操作", uid: "actions", align: "center" },
 ];
+
+const getCookieOptions = (days: number) => ({
+  expires: days,
+  secure:
+    typeof window !== "undefined"
+      ? window.location.protocol === "https:"
+      : false,
+  sameSite: "lax" as const,
+});
 
 export default function UserManagePage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -203,10 +217,17 @@ export default function UserManagePage() {
     }
 
     try {
+      const payload = { ...formState };
+
+      if (!payload.password?.trim()) {
+        delete payload.password;
+      }
+
       if (editingUser) {
-        await userApi.updateUser(editingUser.id, formState);
+        await userApi.updateUser(editingUser.id, payload);
+        syncCurrentUserInfo(editingUser.id, payload);
       } else {
-        await userApi.createUser(formState);
+        await userApi.createUser(payload);
       }
       alert("保存成功");
       setIsModalOpen(false);
@@ -214,6 +235,27 @@ export default function UserManagePage() {
     } catch {
       alert("保存失败");
     }
+  };
+
+  const syncCurrentUserInfo = (userId: number, nextUser: UserFormState) => {
+    const currentUser =
+      appStore.pageDomain.home.uiDomain.layout.leftSidebar.userInfo;
+
+    if (!currentUser || currentUser.id !== userId) {
+      return;
+    }
+
+    const updatedUser = {
+      ...currentUser,
+      userName: nextUser.userName || currentUser.userName,
+      account: nextUser.account || currentUser.account,
+      email: nextUser.email || "",
+      phoneNumber: nextUser.phoneNumber || "",
+      profileImage: nextUser.profileImage || "",
+    };
+
+    appStore.pageDomain.home.uiDomain.layout.leftSidebar.userInfo = updatedUser;
+    Cookies.set("userInfo", JSON.stringify(updatedUser), getCookieOptions(7));
   };
 
   const handleDelete = async (user: UserData) => {
@@ -234,17 +276,24 @@ export default function UserManagePage() {
     switch (columnKey) {
       case "userName":
         return (
-          <User
-            avatarProps={{
-              radius: "lg",
-              src: item.profileImage
-                ? resolveAssetUrl(item.profileImage)
-                : "/default-avatar.png",
-              size: "sm",
-            }}
-            description={item.account}
-            name={item.userName}
-          />
+          <div className="min-w-[132px] max-w-[180px]">
+            <User
+              avatarProps={{
+                radius: "lg",
+                src: item.profileImage
+                  ? resolveAssetUrl(item.profileImage)
+                  : "/default-avatar.png",
+                size: "sm",
+              }}
+              classNames={{
+                base: "min-w-0 justify-start",
+                name: "max-w-[120px] truncate",
+                description: "max-w-[120px] truncate",
+              }}
+              description={item.account}
+              name={item.userName}
+            />
+          </div>
         );
 
       case "sex":
@@ -326,7 +375,11 @@ export default function UserManagePage() {
         );
 
       default:
-        return String(cellValue || "-");
+        return (
+          <span className="block max-w-[190px] truncate">
+            {String(cellValue || "-")}
+          </span>
+        );
     }
   };
 
@@ -363,7 +416,7 @@ export default function UserManagePage() {
         onSearch={handleSearch}
       />
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
+      <div className="min-w-0 rounded-lg bg-white p-4 dark:bg-gray-800">
         <CustomTable
           ariaLabel="用户列表"
           columns={columns}
@@ -394,6 +447,7 @@ export default function UserManagePage() {
           <ModalBody className="grid gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
               <FileUploadField
+                accept={IMAGE_UPLOAD_ACCEPT}
                 folder="avatars"
                 label="头像"
                 value={formState.profileImage || ""}
@@ -416,19 +470,17 @@ export default function UserManagePage() {
                 setFormState((prev) => ({ ...prev, account: e.target.value }))
               }
             />
-            {!editingUser && (
-              <Input
-                label="密码"
-                type="password"
-                value={formState.password || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    password: e.target.value,
-                  }))
-                }
-              />
-            )}
+            <Input
+              label={editingUser ? "新密码（留空不修改）" : "密码"}
+              type="password"
+              value={formState.password || ""}
+              onChange={(e) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  password: e.target.value,
+                }))
+              }
+            />
             <Select
               label="性别"
               selectedKeys={[formState.sex || "0"]}

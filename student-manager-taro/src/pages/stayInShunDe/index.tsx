@@ -7,18 +7,23 @@ import { commonRequest } from '@/utils/request'
 import { normalizePageResult } from '@/utils/pagination'
 
 export default function StayInShunDe() {
-  const [tweetType, setTweetType] = useState(1)
+  const [categories, setCategories] = useState<any[]>([])
+  const [categoryId, setCategoryId] = useState<string | number>('')
   const [list, setList] = useState<any[]>([])
   const [pageNum, setPageNum] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const loading = useRef(false)
   const pageSize = 10
 
-  const load = async (nextPage = 1, append = false, nextType = tweetType) => {
+  const load = async (nextPage = 1, append = false, nextCategoryId = categoryId) => {
     if (loading.current) return
     loading.current = true
     try {
-      const data = await commonRequest<any>('GET', 'app/tweet/list', {}, { tweetType: nextType, pageNum: nextPage, pageSize })
+      const data = await commonRequest<any>('GET', 'app/tweet/list', {}, {
+        categoryId: nextCategoryId || undefined,
+        pageNum: nextPage,
+        pageSize
+      })
       const page = normalizePageResult<any>(data, nextPage, pageSize)
       setList((prev) => append ? prev.concat(page.list) : page.list)
       setPageNum(nextPage)
@@ -29,8 +34,16 @@ export default function StayInShunDe() {
   }
 
   useEffect(() => {
-    load(1, false, tweetType)
-  }, [tweetType])
+    async function init() {
+      const rows = await commonRequest<any[]>('GET', 'app/content-category/list', {}, { businessKey: 'innovation-shunde' })
+      const nextCategories = Array.isArray(rows) ? rows : []
+      setCategories(nextCategories)
+      const firstCategoryId = nextCategories[0]?.id || ''
+      setCategoryId(firstCategoryId)
+      load(1, false, firstCategoryId)
+    }
+    init()
+  }, [])
 
   useReachBottom(() => {
     if (hasMore) load(pageNum + 1, true)
@@ -39,18 +52,15 @@ export default function StayInShunDe() {
   return (
     <View>
       <Tabs
-        value={tweetType}
-        tabs={[
-          { label: '人才政策', value: 1 },
-          { label: '留创园信息', value: 2 },
-          { label: '创新创业扶持政策', value: 3 },
-          { label: '人才招聘', value: 4 }
-        ]}
+        variant="scroll"
+        value={categoryId}
+        tabs={categories.map((item) => ({ label: item.name, value: item.id }))}
         onChange={(value) => {
           setList([])
           setPageNum(1)
           setHasMore(true)
-          setTweetType(Number(value))
+          setCategoryId(value)
+          load(1, false, value)
         }}
       />
       <View className="common-box-2">
@@ -59,7 +69,6 @@ export default function StayInShunDe() {
             key={item.id}
             title={item.title || item.tweetTitle}
             image={item.avaterUrl || item.tweetUrl || item.tweetImg}
-            summary={item.describe || item.tweetContent}
             meta={item.createTime}
             onClick={() => Taro.navigateTo({ url: `/pages/stayInShunDe/detail?id=${item.id}` })}
           />

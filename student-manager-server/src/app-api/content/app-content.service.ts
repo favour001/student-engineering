@@ -10,8 +10,10 @@ import { LxArticle } from '../../student-business/entities/lx-article.entity';
 import { LxUserNotice } from '../../student-business/entities/lx-user-notice.entity';
 import { LxTweet } from '../../student-business/entities/lx-tweet.entity';
 import { LxVideo } from '../../student-business/entities/lx-video.entity';
+import { LxUserJin } from '../../student-business/entities/lx-user-jin.entity';
 import { LxXiehui } from '../../student-business/entities/lx-xiehui.entity';
 import { LxRuhui } from '../../student-business/entities/lx-ruhui.entity';
+import { BusinessContentCategory } from '../../student-business/entities/business-content-category.entity';
 
 type PageQuery = Record<string, string | number | undefined>;
 
@@ -25,8 +27,10 @@ export class AppContentService {
     @InjectRepository(LxUserNotice) private readonly noticeRepo: Repository<LxUserNotice>,
     @InjectRepository(LxTweet) private readonly tweetRepo: Repository<LxTweet>,
     @InjectRepository(LxVideo) private readonly videoRepo: Repository<LxVideo>,
+    @InjectRepository(LxUserJin) private readonly quickAccessRepo: Repository<LxUserJin>,
     @InjectRepository(LxXiehui) private readonly xiehuiRepo: Repository<LxXiehui>,
-    @InjectRepository(LxRuhui) private readonly ruhuiRepo: Repository<LxRuhui>
+    @InjectRepository(LxRuhui) private readonly ruhuiRepo: Repository<LxRuhui>,
+    @InjectRepository(BusinessContentCategory) private readonly categoryRepo: Repository<BusinessContentCategory>
   ) {}
 
   async listBanners() {
@@ -41,6 +45,24 @@ export class AppContentService {
       avaterUrl: item.avaterUrl,
       bannerUrl: item.avaterUrl,
       pointUrl: item.pointUrl,
+    }));
+  }
+
+  async listQuickAccess() {
+    const rows = await this.quickAccessRepo.find({
+      where: { releases: 0 },
+      order: { createTime: 'DESC', id: 'DESC' },
+    });
+
+    return rows.map((item) => ({
+      id: item.id,
+      title: item.title,
+      remark: item.remark,
+      avaterUrl: item.avaterUrl,
+      coverImage: item.avaterUrl,
+      pointUrl: item.pointUrl,
+      path: item.pointUrl,
+      createTime: item.createTime,
     }));
   }
 
@@ -94,10 +116,20 @@ export class AppContentService {
   async listTweets(query: PageQuery) {
     const { pageNum, pageSize } = this.getPage(query, 10);
     const qb = this.tweetRepo.createQueryBuilder('tweet');
+    qb.select([
+      'tweet.id',
+      'tweet.tweetTitle',
+      'tweet.tweetType',
+      'tweet.categoryId',
+      'tweet.tweetImg',
+      'tweet.createTime',
+    ]);
+    const categoryId = Number(query.categoryId || 0);
+    if (categoryId > 0) qb.andWhere('tweet.categoryId = :categoryId', { categoryId });
     if (query.tweetType) qb.andWhere('tweet.tweetType = :tweetType', { tweetType: String(query.tweetType) });
     qb.orderBy('tweet.createTime', 'DESC').addOrderBy('tweet.id', 'DESC');
     const [rows, total] = await qb.skip((pageNum - 1) * pageSize).take(pageSize).getManyAndCount();
-    const list = rows.map((item) => ({ id: item.id, tweetTitle: item.tweetTitle, tweetType: item.tweetType, tweetImg: item.tweetImg, tweetContent: item.tweetContent, createTime: item.createTime }));
+    const list = rows.map((item) => ({ id: item.id, tweetTitle: item.tweetTitle, tweetType: item.tweetType, categoryId: item.categoryId, tweetImg: item.tweetImg, createTime: item.createTime }));
     return query.pageNum || query.pageSize ? { list, total, pageNum, pageSize, hasMore: pageNum * pageSize < total } : list;
   }
 
@@ -129,6 +161,13 @@ export class AppContentService {
     const item = await this.ruhuiRepo.findOne({ where: { id } });
     if (!item) throw new NotFoundException('入会须知不存在');
     return { id: item.id, title: item.title, avaterUrl: item.avaterUrl, remark: item.remark };
+  }
+
+  listCategories(businessKey: string) {
+    return this.categoryRepo.find({
+      where: { businessKey, status: 0 },
+      order: { sortNumber: 'ASC', id: 'ASC' },
+    });
   }
 
   private getPage(query: PageQuery, defaultSize: number) {

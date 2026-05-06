@@ -20,6 +20,9 @@ export class LxMerchant {
   @Column({ type: 'longtext', nullable: true, comment: '描述内容' })
   content?: string | null;
 
+  @Column({ type: 'bigint', name: 'category_id', nullable: true, comment: '业务分类ID' })
+  categoryId?: number | null;
+
   @CreateDateColumn({ type: 'datetime', name: 'create_time' })
   createTime: Date;
 

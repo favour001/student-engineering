@@ -30,9 +30,22 @@ export class AppUserService {
     if (!user) throw new NotFoundException('用户不存在');
     Object.assign(user, {
       ...(body.userName !== undefined ? { userName: body.userName } : {}),
+      ...(body.userEnglishName !== undefined ? { userEnglishName: body.userEnglishName } : {}),
       ...(body.nickName !== undefined ? { nickName: body.nickName } : {}),
       ...(body.avaterUrl !== undefined || body.avatarUrl !== undefined ? { avaterUrl: body.avaterUrl ?? body.avatarUrl } : {}),
       ...(body.email !== undefined ? { email: body.email } : {}),
+      ...(body.mobile !== undefined ? { mobile: body.mobile } : {}),
+      ...(body.liuxueGuo !== undefined || body.studyCountry !== undefined ? { liuxueGuo: body.liuxueGuo ?? body.studyCountry } : {}),
+      ...(body.liuxueSchool !== undefined || body.studySchool !== undefined ? { liuxueSchool: body.liuxueSchool ?? body.studySchool } : {}),
+      ...(body.major !== undefined ? { major: body.major } : {}),
+      ...(body.certificate !== undefined ? { certificate: body.certificate } : {}),
+      ...(body.gender !== undefined ? { gender: body.gender } : {}),
+      ...(body.companyName !== undefined ? { companyName: body.companyName } : {}),
+      ...(body.companyPost !== undefined ? { companyPost: body.companyPost } : {}),
+      ...(body.companyAddress !== undefined ? { companyAddress: body.companyAddress } : {}),
+      ...(body.post !== undefined || body.socialPost !== undefined ? { post: body.post ?? body.socialPost } : {}),
+      ...(body.jiguan !== undefined || body.nativePlace !== undefined ? { jiguan: body.jiguan ?? body.nativePlace } : {}),
+      ...(body.birthday !== undefined ? { birthday: body.birthday ? new Date(body.birthday) : null } : {}),
       ...(body.archives !== undefined ? { archives: body.archives } : {}),
       ...(body.remark !== undefined ? { remark: body.remark } : {}),
     });
@@ -45,6 +58,20 @@ export class AppUserService {
       avatarUrl: user.avaterUrl,
       avatar: user.avaterUrl,
       name: user.userName,
+      phone: user.mobile,
+      studyCountry: user.liuxueGuo,
+      studySchool: user.liuxueSchool,
+      socialPost: user.post,
+      nativePlace: user.jiguan,
+      certificate: user.certificate,
+      companyName: user.companyName,
+      companyPost: user.companyPost,
+      companyAddress: user.companyAddress,
+      gender: user.gender,
+      birthday: user.birthday,
+      email: user.email,
+      remark: user.remark,
+      userEnglishName: user.userEnglishName,
     };
   }
 }

@@ -23,6 +23,7 @@ import { LxWelfare } from './entities/lx-welfare.entity';
 import { LxWxuser } from './entities/lx-wxuser.entity';
 import { LxXiehui } from './entities/lx-xiehui.entity';
 import { LxMemberStyle } from './entities/lx-member-style.entity';
+import { BusinessContentCategory } from './entities/business-content-category.entity';
 import { ActivityBusinessService } from './services/activity-business.service';
 import { BenefitBusinessService } from './services/benefit-business.service';
 import { ContentBusinessService } from './services/content-business.service';
@@ -50,6 +51,7 @@ import { MemberBusinessService } from './services/member-business.service';
       LxVip,
       LxWelfare,
       LxCard,
+      BusinessContentCategory,
     ]),
   ],
   controllers: [

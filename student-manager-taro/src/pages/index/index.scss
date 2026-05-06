@@ -4,7 +4,15 @@
 }
 
 .index-content {
+  box-sizing: border-box;
+}
+
+.index-content.is-page-scroll {
   min-height: 100vh;
   padding-bottom: 116px;
-  box-sizing: border-box;
+}
+
+.index-content.is-contained {
+  height: 100vh;
+  overflow: hidden;
 }

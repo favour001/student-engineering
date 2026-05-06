@@ -33,7 +33,7 @@ export default function Index() {
 
   return (
     <View className="index-page">
-      <View className="index-content">
+      <View className={`index-content ${currentIndex === 1 || currentIndex === 2 ? 'is-contained' : 'is-page-scroll'}`}>
         {currentIndex === 0 ? <Home /> : null}
         {currentIndex === 1 ? <Welfare /> : null}
         {currentIndex === 2 ? <Merchant /> : null}

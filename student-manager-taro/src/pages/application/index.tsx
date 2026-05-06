@@ -20,7 +20,7 @@ export default function Application() {
   const apply = () => {
     Taro.navigateToMiniProgram({
       appId: 'wxd947200f82267e58',
-      path: 'pages/wjxqList/wjxqList?activityId=hSAajeX'
+      path: 'pages/wjxqList/wjxqList?activityId=rX2tTKL'
     })
   }
 

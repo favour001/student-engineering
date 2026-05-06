@@ -18,20 +18,29 @@ import {
   DatePicker,
 } from "@heroui/react";
 import { parseAbsoluteToLocal } from "@internationalized/date";
-import { Plus, SearchIcon, Sparkles, UserPlus, Users } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, SearchIcon, Sparkles, UserPlus, Users } from "lucide-react";
 
-import { FileUploadField } from "../components/file-upload-field";
+import {
+  FileUploadField,
+  IMAGE_UPLOAD_ACCEPT,
+} from "../components/file-upload-field";
 import { RichTextEditor } from "../components/rich-text-editor";
 import { Search, SearchFieldConfig } from "../../components/search";
 import { Page } from "../../components/page";
 import { CustomTable, ColumnConfig } from "../../components/table";
-import { BusinessExtraField, businessCategoryConfigMap } from "../config";
+import {
+  BusinessExtraField,
+  businessCategoryConfigMap,
+  businessFieldLabelMap,
+} from "../config";
 import {
   BusinessAssignableUser,
+  BusinessCategoryOption,
   BusinessContentItem,
   contentApi,
 } from "../services/contentApi";
 import { departmentApi } from "../../platform/department/services/departmentApi";
+import { appPageMenuApi } from "../../platform/app-menu/services/appPageMenuApi";
 import { postApi } from "../../platform/post/services/postApi";
 
 const statusMap: Record<
@@ -96,7 +105,32 @@ const initialFormState: Partial<BusinessContentItem> = {
   honorRemark: "",
   companyRemark: "",
   jobRemark: "",
+  categoryId: "",
 };
+
+const dynamicCategoryBusinessKeys = new Set([
+  "service-platform",
+  "innovation-shunde",
+  "vip",
+  "welfare",
+]);
+
+const numericFieldKeys = new Set([
+  "sortNumber",
+  "status",
+  "money",
+  "quantity",
+  "categoryId",
+  "postId",
+  "deptId",
+]);
+
+const dateFieldKeys = new Set([
+  "publishedAt",
+  "startTime",
+  "endTime",
+  "birthday",
+]);
 
 function normalizeDateInput(value?: string | null) {
   return value ? value.slice(0, 16) : "";
@@ -147,6 +181,74 @@ function toDatePickerIsoString(value: any) {
     : new Date(String(value)).toISOString();
 }
 
+function getVisibleFormKeys(category: string): Array<keyof BusinessContentItem> {
+  const config = businessCategoryConfigMap[category];
+  if (!config) {
+    return ["title"];
+  }
+
+  const keys = new Set<keyof BusinessContentItem>(["title"]);
+  if (config.secondaryLabel) keys.add("subTitle");
+  if (config.summaryLabel) keys.add("summary");
+  if (config.contentLabel) keys.add("content");
+  if (config.coverImageLabel) keys.add("coverImage");
+  if (config.externalUrlLabel) keys.add("externalUrl");
+  if (config.sourceLabel) keys.add("source");
+  if (config.authorLabel) keys.add("author");
+  if (config.publishedAtLabel) keys.add("publishedAt");
+  if (config.enableStatus) keys.add("status");
+  if (category === "article" || category === "study-abroad-news") {
+    keys.add("sortNumber");
+  }
+  config.extraFields?.forEach((field) => keys.add(field.key));
+
+  return Array.from(keys);
+}
+
+function getInitialFormState(category: string): Partial<BusinessContentItem> {
+  const state: Partial<BusinessContentItem> = {
+    category,
+    title: "",
+  };
+  const writableState = state as Record<string, any>;
+
+  getVisibleFormKeys(category).forEach((key) => {
+    if (key === "title") return;
+    if (numericFieldKeys.has(key)) {
+      writableState[key] = key === "status" ? 0 : "";
+      return;
+    }
+    writableState[key] = "";
+  });
+
+  return state;
+}
+
+function normalizePayloadValue(key: string, value: any) {
+  if (dateFieldKeys.has(key)) {
+    return value || null;
+  }
+  if (numericFieldKeys.has(key)) {
+    if (value === "" || value === undefined || value === null) {
+      return key === "status" ? 0 : null;
+    }
+    return Number(value);
+  }
+  return value ?? "";
+}
+
+function buildBusinessPayload(
+  category: string,
+  formState: Partial<BusinessContentItem>,
+) {
+  const payload: Partial<BusinessContentItem> = { category };
+  const writablePayload = payload as Record<string, any>;
+  getVisibleFormKeys(category).forEach((key) => {
+    writablePayload[key] = normalizePayloadValue(key, formState[key]);
+  });
+  return payload;
+}
+
 export default function BusinessCategoryPage({
   params,
 }: {
@@ -186,6 +288,21 @@ export default function BusinessCategoryPage({
   const [departmentOptions, setDepartmentOptions] = useState<
     { label: string; value: string }[]
   >([]);
+  const [menuPathOptions, setMenuPathOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [contentCategories, setContentCategories] = useState<
+    BusinessCategoryOption[]
+  >([]);
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
+  const [expandedUserIds, setExpandedUserIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [categoryForm, setCategoryForm] = useState<
+    Partial<BusinessCategoryOption>
+  >({ name: "", code: "", sortNumber: 0, status: 0 });
+
+  const hasDynamicCategories = dynamicCategoryBusinessKeys.has(category);
 
   const searchFields = useMemo<SearchFieldConfig[]>(
     () =>
@@ -216,8 +333,24 @@ export default function BusinessCategoryPage({
               },
             ]
           : []),
+        ...(hasDynamicCategories
+          ? [
+              {
+                name: "categoryId",
+                label: "分类",
+                type: "select" as const,
+                options: [
+                  { label: "全部", value: "" },
+                  ...contentCategories.map((item) => ({
+                    label: item.name,
+                    value: String(item.id),
+                  })),
+                ],
+              },
+            ]
+          : []),
       ],
-    [categoryConfig],
+    [categoryConfig, contentCategories, hasDynamicCategories],
   );
 
   const columns: ColumnConfig[] = [
@@ -249,6 +382,29 @@ export default function BusinessCategoryPage({
     [categoryConfig?.secondaryOptions],
   );
 
+  const cardUserGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      { userId: string; userName: string; mobile: string; items: BusinessContentItem[] }
+    >();
+
+    items.forEach((item) => {
+      const userId = String(item.userId || item.subTitle || "unknown");
+      const userName = item.userName || item.userNickName || `用户 ${userId}`;
+      const mobile = item.userMobile || "";
+      const group = groups.get(userId);
+
+      if (group) {
+        group.items.push(item);
+        return;
+      }
+
+      groups.set(userId, { userId, userName, mobile, items: [item] });
+    });
+
+    return Array.from(groups.values());
+  }, [items]);
+
   const fetchList = async () => {
     if (!categoryConfig) {
       return;
@@ -271,9 +427,22 @@ export default function BusinessCategoryPage({
     }
   };
 
+  const fetchContentCategories = async () => {
+    if (!hasDynamicCategories) {
+      setContentCategories([]);
+      return;
+    }
+    const rows = await contentApi.getCategories(category);
+    setContentCategories(rows);
+  };
+
   useEffect(() => {
     fetchList();
   }, [currentPage, pageSize, category, searchParams]);
+
+  useEffect(() => {
+    fetchContentCategories();
+  }, [category, hasDynamicCategories]);
 
   useEffect(() => {
     if (category !== "member-style") {
@@ -295,6 +464,23 @@ export default function BusinessCategoryPage({
           .map((item) => ({
             label: item.name,
             value: String(item.id),
+          })),
+      );
+    });
+  }, [category]);
+
+  useEffect(() => {
+    if (category !== "quick-access") {
+      return;
+    }
+
+    appPageMenuApi.getActiveMenus().then((menus) => {
+      setMenuPathOptions(
+        menus
+          .filter((item) => item.path)
+          .map((item) => ({
+            label: `${item.name}（${item.path}）`,
+            value: item.path,
           })),
       );
     });
@@ -328,7 +514,7 @@ export default function BusinessCategoryPage({
 
   const openCreateModal = () => {
     setEditingItem(null);
-    setFormState({ ...initialFormState, category });
+    setFormState(getInitialFormState(category));
     setIsModalOpen(true);
   };
 
@@ -337,7 +523,14 @@ export default function BusinessCategoryPage({
 
     setEditingItem(detail);
     setFormState({
+      ...item,
       ...detail,
+      cardTitle: detail.cardTitle || item.cardTitle,
+      cardCoverImage: detail.cardCoverImage || item.cardCoverImage,
+      userName: detail.userName || item.userName,
+      userNickName: detail.userNickName || item.userNickName,
+      userMobile: detail.userMobile || item.userMobile,
+      userAvatar: detail.userAvatar || item.userAvatar,
       publishedAt: normalizeDateInput(detail.publishedAt),
       startTime: normalizeDateInput(detail.startTime),
       endTime: normalizeDateInput(detail.endTime),
@@ -347,14 +540,7 @@ export default function BusinessCategoryPage({
   };
 
   const handleSubmit = async () => {
-    const payload = {
-      ...formState,
-      category,
-      publishedAt: formState.publishedAt || null,
-      startTime: formState.startTime || null,
-      endTime: formState.endTime || null,
-      birthday: formState.birthday || null,
-    };
+    const payload = buildBusinessPayload(category, formState);
 
     if (!payload.title) {
       alert(`请填写${categoryConfig.primaryLabel}`);
@@ -370,6 +556,35 @@ export default function BusinessCategoryPage({
 
     setIsModalOpen(false);
     await fetchList();
+  };
+
+  const handleCreateCategory = async () => {
+    if (!categoryForm.name) {
+      alert("请填写分类名称");
+      return;
+    }
+    await contentApi.createCategory({
+      ...categoryForm,
+      businessKey: category,
+      sortNumber: Number(categoryForm.sortNumber || 0),
+      status: Number(categoryForm.status || 0),
+    });
+    setCategoryForm({ name: "", code: "", sortNumber: 0, status: 0 });
+    await fetchContentCategories();
+  };
+
+  const handleUpdateCategory = async (
+    item: BusinessCategoryOption,
+    patch: Partial<BusinessCategoryOption>,
+  ) => {
+    await contentApi.updateCategory(item.id, patch);
+    await fetchContentCategories();
+  };
+
+  const handleDeleteCategory = async (item: BusinessCategoryOption) => {
+    if (!window.confirm(`确定删除分类「${item.name}」吗？`)) return;
+    await contentApi.deleteCategory(item.id, category);
+    await fetchContentCategories();
   };
 
   const handleDelete = async (item: BusinessContentItem) => {
@@ -458,9 +673,70 @@ export default function BusinessCategoryPage({
     await fetchList();
   };
 
+  const assignmentPageUserIds = assignmentUsers.map((user) => user.id);
+  const isAssignmentPageAllSelected =
+    assignmentPageUserIds.length > 0 &&
+    assignmentPageUserIds.every((id) => selectedUserIds.includes(id));
+
+  const selectAssignmentPage = () => {
+    setSelectedUserIds((prev) =>
+      Array.from(new Set([...prev, ...assignmentPageUserIds])),
+    );
+  };
+
+  const clearAssignmentPage = () => {
+    setSelectedUserIds((prev) =>
+      prev.filter((id) => !assignmentPageUserIds.includes(id)),
+    );
+  };
+
+  const toggleAssignmentUser = (userId: number) => {
+    setSelectedUserIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((currentId) => currentId !== userId)
+        : [...prev, userId],
+    );
+  };
+
+  const getAssignmentUserAvatar = (user: BusinessAssignableUser) =>
+    user.coverImage ||
+    user.userAvatar ||
+    user.avatarUrl ||
+    user.avatar ||
+    user.avaterUrl ||
+    "";
+
   const renderCell = (item: BusinessContentItem, columnKey: string) => {
     switch (columnKey) {
       case "title":
+        if (category === "member-style") {
+          return (
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-semibold text-slate-500">
+                {item.coverImage ? (
+                  <img
+                    alt={item.title}
+                    className="size-full object-cover"
+                    src={item.coverImage}
+                  />
+                ) : (
+                  item.title?.slice(0, 1) || "-"
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-slate-900">
+                  {item.title}
+                </p>
+                {item.tags ? (
+                  <p className="truncate text-xs text-slate-500">
+                    {item.tags}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="space-y-1">
             <p className="font-semibold text-slate-900">{item.title}</p>
@@ -539,6 +815,154 @@ export default function BusinessCategoryPage({
     }
   };
 
+  const toggleUserGroup = (userId: string) => {
+    setExpandedUserIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) {
+        next.delete(userId);
+      } else {
+        next.add(userId);
+      }
+      return next;
+    });
+  };
+
+  const getCardTypeLabel = (value?: string | null) =>
+    businessFieldLabelMap.cardType[value || ""] || value || "-";
+
+  const getCardReceiveStatusLabel = (value?: string | null) =>
+    businessFieldLabelMap.cardReceiveStatus[value || ""] || value || "-";
+
+  const getCardUseStatusLabel = (value?: string | null) =>
+    businessFieldLabelMap.useStatus[value || ""] || value || "-";
+
+  const getCardFormName = () =>
+    formState.cardTitle || formState.title || "-";
+
+  const getCardFormUserName = () =>
+    formState.userName ||
+    formState.userNickName ||
+    (formState.userMobile ? `用户 ${formState.userMobile}` : "") ||
+    formState.subTitle ||
+    formState.userId ||
+    "-";
+
+  const renderCardPackageGroups = () => (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="grid grid-cols-[minmax(220px,1.5fr)_120px_120px_160px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+        <span>用户</span>
+        <span>卡券数量</span>
+        <span>待领取</span>
+        <span>最近领取时间</span>
+      </div>
+      {cardUserGroups.length ? (
+        cardUserGroups.map((group) => {
+          const expanded =
+            expandedUserIds.has(group.userId) || cardUserGroups.length === 1;
+          const pendingCount = group.items.filter(
+            (item) => item.receiveStatus === "2" || item.source === "2",
+          ).length;
+          const sortedCreateTimes = group.items
+            .map((item) => item.createTime)
+            .filter(Boolean)
+            .sort();
+          const latestTime = sortedCreateTimes[sortedCreateTimes.length - 1];
+
+          return (
+            <div key={group.userId} className="border-b border-slate-100 last:border-b-0">
+              <button
+                className="grid w-full cursor-pointer grid-cols-[minmax(220px,1.5fr)_120px_120px_160px] items-center gap-3 px-4 py-4 text-left transition hover:bg-sky-50/50"
+                type="button"
+                onClick={() => toggleUserGroup(group.userId)}
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  {expanded ? (
+                    <ChevronDown className="size-4 shrink-0 text-slate-400" />
+                  ) : (
+                    <ChevronRight className="size-4 shrink-0 text-slate-400" />
+                  )}
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold text-slate-900">
+                      {group.userName}
+                    </span>
+                    <span className="block truncate text-xs text-slate-500">
+                      ID {group.userId}
+                      {group.mobile ? ` · ${group.mobile}` : ""}
+                    </span>
+                  </span>
+                </span>
+                <span className="text-sm text-slate-700">{group.items.length}</span>
+                <span className="text-sm text-amber-600">{pendingCount}</span>
+                <span className="text-sm text-slate-500">
+                  {latestTime ? new Date(latestTime).toLocaleString("zh-CN") : "-"}
+                </span>
+              </button>
+
+              {expanded ? (
+                <div className="bg-slate-50/60 px-4 pb-4">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                    <table className="w-full min-w-[760px] text-sm">
+                      <thead className="bg-white text-xs text-slate-500">
+                        <tr>
+                          <th className="px-4 py-3 text-left">卡券名称</th>
+                          <th className="px-4 py-3 text-left">类型</th>
+                          <th className="px-4 py-3 text-left">领取状态</th>
+                          <th className="px-4 py-3 text-left">使用状态</th>
+                          <th className="px-4 py-3 text-left">卡券ID</th>
+                          <th className="px-4 py-3 text-center">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.items.map((item) => (
+                          <tr key={item.id} className="border-t border-slate-100">
+                            <td className="px-4 py-3 font-medium text-slate-900">
+                              {item.cardTitle || item.title || "-"}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {getCardTypeLabel(item.cardType || item.summary)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {getCardReceiveStatusLabel(item.receiveStatus || item.source)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {getCardUseStatusLabel(item.useStatus)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">
+                              {item.relationId || item.title}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex justify-center gap-2">
+                                <Button size="sm" variant="flat" onPress={() => openEditModal(item)}>
+                                  编辑
+                                </Button>
+                                <Button
+                                  color="danger"
+                                  size="sm"
+                                  variant="light"
+                                  onPress={() => handleDelete(item)}
+                                >
+                                  删除
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          );
+        })
+      ) : (
+        <div className="py-12 text-center text-sm text-slate-500">
+          {loading ? "加载中..." : "暂无数据"}
+        </div>
+      )}
+    </div>
+  );
+
   const renderExtraField = (field: BusinessExtraField) => {
     const value = formState[field.key];
     const dynamicOptions =
@@ -546,6 +970,11 @@ export default function BusinessCategoryPage({
         ? postOptions
         : field.key === "deptId"
           ? departmentOptions
+          : field.key === "categoryId"
+            ? contentCategories.map((item) => ({
+                label: item.name,
+                value: String(item.id),
+              }))
           : field.options;
 
     if (field.type === "richtext") {
@@ -564,8 +993,13 @@ export default function BusinessCategoryPage({
     }
 
     if (field.type === "file") {
+      const isImageUploadField = /image|avatar|cover|background|banner|photo/.test(
+        `${field.key} ${field.label}`.toLowerCase(),
+      ) || /certificate|证书/.test(`${field.key} ${field.label}`.toLowerCase());
+
       return (
         <FileUploadField
+          accept={isImageUploadField ? IMAGE_UPLOAD_ACCEPT : undefined}
           key={field.key}
           folder={category}
           label={field.label}
@@ -673,14 +1107,21 @@ export default function BusinessCategoryPage({
               {categoryConfig.subtitle}
             </p>
           </div>
-          <Button
-            className="bg-sky-600 text-white shadow-lg shadow-sky-100"
-            color="primary"
-            startContent={<Plus className="size-4" />}
-            onPress={openCreateModal}
-          >
-            新增内容
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            {hasDynamicCategories ? (
+              <Button variant="flat" onPress={() => setCategoryManagerOpen(true)}>
+                分类管理
+              </Button>
+            ) : null}
+            <Button
+              className="bg-sky-600 text-white shadow-lg shadow-sky-100"
+              color="primary"
+              startContent={<Plus className="size-4" />}
+              onPress={openCreateModal}
+            >
+              新增内容
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -694,7 +1135,7 @@ export default function BusinessCategoryPage({
         <div className="mb-5 flex flex-wrap gap-4">
           <div className="rounded-2xl bg-sky-50 px-4 py-3">
             <div className="text-xs uppercase tracking-[0.16em] text-sky-600">
-              Total
+              {category === "card" ? "用户数" : "Total"}
             </div>
             <div className="mt-1 text-2xl font-semibold text-slate-900">
               {total}
@@ -702,30 +1143,38 @@ export default function BusinessCategoryPage({
           </div>
           <div className="rounded-2xl bg-emerald-50 px-4 py-3">
             <div className="text-xs uppercase tracking-[0.16em] text-emerald-600">
-              With Image
+              {category === "card" ? "当前页卡券" : "With Image"}
             </div>
             <div className="mt-1 text-2xl font-semibold text-slate-900">
-              {items.filter((item) => item.coverImage).length}
+              {category === "card"
+                ? items.length
+                : items.filter((item) => item.coverImage).length}
             </div>
           </div>
           <div className="rounded-2xl bg-amber-50 px-4 py-3">
             <div className="text-xs uppercase tracking-[0.16em] text-amber-600">
-              Interactive
+              {category === "card" ? "待领取" : "Interactive"}
             </div>
             <div className="mt-1 text-2xl font-semibold text-slate-900">
-              {items.filter((item) => item.externalUrl || item.content).length}
+              {category === "card"
+                ? items.filter((item) => item.receiveStatus === "2" || item.source === "2").length
+                : items.filter((item) => item.externalUrl || item.content).length}
             </div>
           </div>
         </div>
 
-        <CustomTable
-          ariaLabel={`${categoryConfig.title}列表`}
-          columns={columns}
-          data={items}
-          emptyContent={loading ? "加载中..." : "暂无数据"}
-          renderCell={renderCell}
-          rowKey="id"
-        />
+        {category === "card" ? (
+          renderCardPackageGroups()
+        ) : (
+          <CustomTable
+            ariaLabel={`${categoryConfig.title}列表`}
+            columns={columns}
+            data={items}
+            emptyContent={loading ? "加载中..." : "暂无数据"}
+            renderCell={renderCell}
+            rowKey="id"
+          />
+        )}
 
         <Page
           showSizeChanger
@@ -753,15 +1202,30 @@ export default function BusinessCategoryPage({
               : `新增${categoryConfig.title}`}
           </ModalHeader>
           <ModalBody className="grid gap-4 md:grid-cols-2">
-            <Input
-              label={categoryConfig.primaryLabel}
-              value={formState.title || ""}
-              onChange={(e) =>
-                setFormState((prev) => ({ ...prev, title: e.target.value }))
-              }
-            />
+            {category === "card" && editingItem ? (
+              <>
+                <Input
+                  isReadOnly
+                  label="卡券名称"
+                  value={getCardFormName()}
+                />
+                <Input
+                  isReadOnly
+                  label="用户名称"
+                  value={getCardFormUserName()}
+                />
+              </>
+            ) : (
+              <Input
+                label={categoryConfig.primaryLabel}
+                value={formState.title || ""}
+                onChange={(e) =>
+                  setFormState((prev) => ({ ...prev, title: e.target.value }))
+                }
+              />
+            )}
             {categoryConfig.secondaryLabel ? (
-              categoryConfig.secondaryOptions?.length ? (
+              category === "card" && editingItem ? null : categoryConfig.secondaryOptions?.length ? (
                 <Select
                   label={categoryConfig.secondaryLabel}
                   selectedKeys={
@@ -795,7 +1259,7 @@ export default function BusinessCategoryPage({
             ) : null}
             {categoryConfig.coverImageLabel ? (
               <FileUploadField
-                accept="image/*"
+                accept={IMAGE_UPLOAD_ACCEPT}
                 folder={category}
                 label={categoryConfig.coverImageLabel}
                 value={formState.coverImage || ""}
@@ -805,25 +1269,65 @@ export default function BusinessCategoryPage({
               />
             ) : null}
             {categoryConfig.externalUrlLabel ? (
-              <Input
-                label={categoryConfig.externalUrlLabel}
-                value={formState.externalUrl || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    externalUrl: e.target.value,
-                  }))
-                }
-              />
+              category === "quick-access" ? (
+                <Select
+                  label={categoryConfig.externalUrlLabel}
+                  selectedKeys={
+                    formState.externalUrl ? [String(formState.externalUrl)] : []
+                  }
+                  onSelectionChange={(keys) => {
+                    const nextValue = Array.from(keys)[0];
+
+                    setFormState((prev) => ({
+                      ...prev,
+                      externalUrl: String(nextValue ?? ""),
+                    }));
+                  }}
+                >
+                  {menuPathOptions.map((option) => (
+                    <SelectItem key={option.value}>{option.label}</SelectItem>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  label={categoryConfig.externalUrlLabel}
+                  value={formState.externalUrl || ""}
+                  onChange={(e) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      externalUrl: e.target.value,
+                    }))
+                  }
+                />
+              )
             ) : null}
             {categoryConfig.sourceLabel ? (
-              <Input
-                label={categoryConfig.sourceLabel}
-                value={formState.source || ""}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, source: e.target.value }))
-                }
-              />
+              categoryConfig.sourceOptions?.length ? (
+                <Select
+                  label={categoryConfig.sourceLabel}
+                  selectedKeys={formState.source ? [String(formState.source)] : []}
+                  onSelectionChange={(keys) => {
+                    const nextValue = Array.from(keys)[0];
+
+                    setFormState((prev) => ({
+                      ...prev,
+                      source: String(nextValue ?? ""),
+                    }));
+                  }}
+                >
+                  {categoryConfig.sourceOptions.map((option) => (
+                    <SelectItem key={option.value}>{option.label}</SelectItem>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  label={categoryConfig.sourceLabel}
+                  value={formState.source || ""}
+                  onChange={(e) =>
+                    setFormState((prev) => ({ ...prev, source: e.target.value }))
+                  }
+                />
+              )
             ) : null}
             {categoryConfig.authorLabel ? (
               <Input
@@ -892,6 +1396,24 @@ export default function BusinessCategoryPage({
                     setFormState((prev) => ({ ...prev, summary: nextValue }))
                   }
                 />
+              ) : categoryConfig.summaryInputType === "select" ? (
+                <Select
+                  className="md:col-span-2"
+                  label={categoryConfig.summaryLabel}
+                  selectedKeys={formState.summary ? [String(formState.summary)] : []}
+                  onSelectionChange={(keys) => {
+                    const nextValue = Array.from(keys)[0];
+
+                    setFormState((prev) => ({
+                      ...prev,
+                      summary: String(nextValue ?? ""),
+                    }));
+                  }}
+                >
+                  {(categoryConfig.summaryOptions || []).map((option) => (
+                    <SelectItem key={option.value}>{option.label}</SelectItem>
+                  ))}
+                </Select>
               ) : (
                 <Textarea
                   className="md:col-span-2"
@@ -949,9 +1471,133 @@ export default function BusinessCategoryPage({
       </Modal>
 
       <Modal
+        isOpen={categoryManagerOpen}
+        scrollBehavior="inside"
+        size="4xl"
+        onOpenChange={setCategoryManagerOpen}
+      >
+        <ModalContent>
+          <ModalHeader>{categoryConfig.title}分类管理</ModalHeader>
+          <ModalBody className="gap-5">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className="mb-3 text-sm font-medium text-slate-700">
+                新增分类
+              </div>
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr_120px_130px]">
+              <Input
+                label="分类名称"
+                value={categoryForm.name || ""}
+                onChange={(e) =>
+                  setCategoryForm((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+              <Input
+                label="分类编码"
+                value={categoryForm.code || ""}
+                onChange={(e) =>
+                  setCategoryForm((prev) => ({ ...prev, code: e.target.value }))
+                }
+              />
+              <Input
+                label="排序"
+                type="number"
+                value={String(categoryForm.sortNumber ?? 0)}
+                onChange={(e) =>
+                  setCategoryForm((prev) => ({
+                    ...prev,
+                    sortNumber: Number(e.target.value || 0),
+                  }))
+                }
+              />
+              <Button className="self-end" color="primary" onPress={handleCreateCategory}>
+                新增分类
+              </Button>
+              </div>
+            </div>
+            <div className="grid gap-3">
+              {contentCategories.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[minmax(160px,1fr)_minmax(160px,1fr)_110px_150px]"
+                >
+                  <Input
+                    label="名称"
+                    value={item.name}
+                    onChange={(e) =>
+                      setContentCategories((prev) =>
+                        prev.map((current) =>
+                          current.id === item.id
+                            ? { ...current, name: e.target.value }
+                            : current,
+                        ),
+                      )
+                    }
+                  />
+                  <Input
+                    label="编码"
+                    value={item.code}
+                    onChange={(e) =>
+                      setContentCategories((prev) =>
+                        prev.map((current) =>
+                          current.id === item.id
+                            ? { ...current, code: e.target.value }
+                            : current,
+                        ),
+                      )
+                    }
+                  />
+                  <Input
+                    label="排序"
+                    type="number"
+                    value={String(item.sortNumber ?? 0)}
+                    onChange={(e) =>
+                      setContentCategories((prev) =>
+                        prev.map((current) =>
+                          current.id === item.id
+                            ? {
+                                ...current,
+                                sortNumber: Number(e.target.value || 0),
+                              }
+                            : current,
+                        ),
+                      )
+                    }
+                  />
+                  <div className="flex items-end justify-end gap-2">
+                    <Button
+                      size="sm"
+                      color="primary"
+                      className="min-w-16"
+                      onPress={() => handleUpdateCategory(item, item)}
+                    >
+                      保存
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="danger"
+                      variant="flat"
+                      className="min-w-16"
+                      onPress={() => handleDeleteCategory(item)}
+                    >
+                      删除
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={() => setCategoryManagerOpen(false)}>
+              关闭
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
         isOpen={assignmentOpen}
         scrollBehavior="inside"
-        size="3xl"
+        size="4xl"
         onOpenChange={setAssignmentOpen}
       >
         <ModalContent>
@@ -992,52 +1638,89 @@ export default function BusinessCategoryPage({
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="mb-3 flex items-center justify-between text-sm text-slate-500">
-                <span>可分配用户 {assignmentTotal} 人</span>
-                <span>已选择 {selectedUserIds.length} 人</span>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span>可分配用户 {assignmentTotal} 人</span>
+                  <span>已选择 {selectedUserIds.length} 人</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    isDisabled={!assignmentUsers.length || isAssignmentPageAllSelected}
+                    size="sm"
+                    variant="flat"
+                    onPress={selectAssignmentPage}
+                  >
+                    全选当前页
+                  </Button>
+                  <Button
+                    isDisabled={!assignmentUsers.length}
+                    size="sm"
+                    variant="light"
+                    onPress={clearAssignmentPage}
+                  >
+                    清空当前页
+                  </Button>
+                </div>
               </div>
-              <div className="grid gap-3">
+              <div className="flex flex-wrap gap-3">
                 {assignmentLoading ? (
-                  <div className="py-10 text-center text-sm text-slate-500">
+                  <div className="w-full py-10 text-center text-sm text-slate-500">
                     加载中...
                   </div>
                 ) : assignmentUsers.length === 0 ? (
-                  <div className="py-10 text-center text-sm text-slate-500">
+                  <div className="w-full py-10 text-center text-sm text-slate-500">
                     暂无可分配用户
                   </div>
                 ) : (
-                  assignmentUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium text-slate-900">
-                          {user.title}
-                        </p>
-                        <p className="truncate text-sm text-slate-500">
-                          {[user.subTitle, user.mobile]
-                            .filter(Boolean)
-                            .join(" · ") || "暂无补充信息"}
-                        </p>
+                  assignmentUsers.map((user) => {
+                    const selected = selectedUserIds.includes(user.id);
+                    const avatar = getAssignmentUserAvatar(user);
+
+                    return (
+                      <div
+                        key={user.id}
+                        className={`flex min-w-[180px] cursor-pointer items-center gap-3 rounded-full border bg-white py-2 pl-2 pr-3 text-left transition ${
+                          selected
+                            ? "border-sky-300 bg-sky-50/60 shadow-sm"
+                            : "border-slate-200 hover:border-sky-200 hover:bg-white"
+                        }`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => toggleAssignmentUser(user.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            toggleAssignmentUser(user.id);
+                          }
+                        }}
+                      >
+                        <span className="flex min-w-0 flex-1 items-center gap-2">
+                          <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-semibold text-slate-500">
+                            {avatar ? (
+                              <img
+                                alt={user.title}
+                                className="size-full object-cover"
+                                src={avatar}
+                              />
+                            ) : (
+                              user.title?.slice(0, 1) || "-"
+                            )}
+                          </span>
+                          <span className="min-w-0 truncate font-medium text-slate-900">
+                            {user.title}
+                          </span>
+                        </span>
+                        <Checkbox
+                          aria-label={`选择${user.title}`}
+                          isSelected={selected}
+                          onClick={(event) => event.stopPropagation()}
+                          onValueChange={() => toggleAssignmentUser(user.id)}
+                        />
                       </div>
-                      <Checkbox
-                        aria-label={`选择${user.title}`}
-                        isSelected={selectedUserIds.includes(user.id)}
-                        onValueChange={(selected) =>
-                          setSelectedUserIds((prev) =>
-                            selected
-                              ? [...prev, user.id]
-                              : prev.filter(
-                                  (currentId) => currentId !== user.id,
-                                ),
-                          )
-                        }
-                      />
-                    </div>
-                  ))
+                    );
+                  })
                 )}
-              </div>
+                      </div>
             </div>
           </ModalBody>
           <ModalFooter>
