@@ -99,7 +99,10 @@ const initialFormState: Partial<BusinessContentItem> = {
   displayName: "",
   jobTitle: "",
   postId: "",
+  postIds: [],
   deptId: "",
+  deptIds: [],
+  awardIds: [],
   memberRank: "",
   backgroundImage: "",
   honorRemark: "",
@@ -214,6 +217,10 @@ function getInitialFormState(category: string): Partial<BusinessContentItem> {
 
   getVisibleFormKeys(category).forEach((key) => {
     if (key === "title") return;
+    if (key === "postIds" || key === "deptIds" || key === "awardIds") {
+      writableState[key] = [];
+      return;
+    }
     if (numericFieldKeys.has(key)) {
       writableState[key] = key === "status" ? 0 : "";
       return;
@@ -225,6 +232,13 @@ function getInitialFormState(category: string): Partial<BusinessContentItem> {
 }
 
 function normalizePayloadValue(key: string, value: any) {
+  if (key === "postIds" || key === "deptIds" || key === "awardIds") {
+    return Array.isArray(value)
+      ? value
+          .map((item) => Number(item))
+          .filter((item) => Number.isFinite(item) && item > 0)
+      : [];
+  }
   if (dateFieldKeys.has(key)) {
     return value || null;
   }
@@ -288,6 +302,9 @@ export default function BusinessCategoryPage({
   const [departmentOptions, setDepartmentOptions] = useState<
     { label: string; value: string }[]
   >([]);
+  const [awardOptions, setAwardOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [menuPathOptions, setMenuPathOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -295,12 +312,21 @@ export default function BusinessCategoryPage({
     BusinessCategoryOption[]
   >([]);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
+  const [awardManagerOpen, setAwardManagerOpen] = useState(false);
   const [expandedUserIds, setExpandedUserIds] = useState<Set<string>>(
     () => new Set(),
   );
   const [categoryForm, setCategoryForm] = useState<
     Partial<BusinessCategoryOption>
   >({ name: "", code: "", sortNumber: 0, status: 0 });
+  const [awardRows, setAwardRows] = useState<
+    { id: number; name: string; sortNumber: number; status: number }[]
+  >([]);
+  const [awardForm, setAwardForm] = useState({
+    name: "",
+    sortNumber: 0,
+    status: 0,
+  });
 
   const hasDynamicCategories = dynamicCategoryBusinessKeys.has(category);
 
@@ -382,6 +408,38 @@ export default function BusinessCategoryPage({
     [categoryConfig?.secondaryOptions],
   );
 
+  const memberStyleSearchFields = useMemo<SearchFieldConfig[]>(
+    () =>
+      category === "member-style"
+        ? [
+            {
+              name: "postId",
+              label: "系统岗位",
+              type: "select",
+              options: [{ label: "全部", value: "" }, ...postOptions],
+            },
+            {
+              name: "deptId",
+              label: "系统部门",
+              type: "select",
+              options: [{ label: "全部", value: "" }, ...departmentOptions],
+            },
+            {
+              name: "awardId",
+              label: "奖项",
+              type: "select",
+              options: [{ label: "全部", value: "" }, ...awardOptions],
+            },
+          ]
+        : [],
+    [awardOptions, category, departmentOptions, postOptions],
+  );
+
+  const effectiveSearchFields = useMemo(
+    () => [...searchFields, ...memberStyleSearchFields],
+    [memberStyleSearchFields, searchFields],
+  );
+
   const cardUserGroups = useMemo(() => {
     const groups = new Map<
       string,
@@ -436,6 +494,26 @@ export default function BusinessCategoryPage({
     setContentCategories(rows);
   };
 
+  const fetchMemberAwards = async () => {
+    if (category !== "member-style") {
+      setAwardRows([]);
+      setAwardOptions([]);
+      return;
+    }
+
+    const rows = await contentApi.getMemberAwards();
+
+    setAwardRows(rows);
+    setAwardOptions(
+      rows
+        .filter((item) => item.status === 0)
+        .map((item) => ({
+          label: item.name,
+          value: String(item.id),
+        })),
+    );
+  };
+
   useEffect(() => {
     fetchList();
   }, [currentPage, pageSize, category, searchParams]);
@@ -467,6 +545,7 @@ export default function BusinessCategoryPage({
           })),
       );
     });
+    fetchMemberAwards();
   }, [category]);
 
   useEffect(() => {
@@ -585,6 +664,46 @@ export default function BusinessCategoryPage({
     if (!window.confirm(`确定删除分类「${item.name}」吗？`)) return;
     await contentApi.deleteCategory(item.id, category);
     await fetchContentCategories();
+  };
+
+  const handleCreateAward = async () => {
+    if (!awardForm.name.trim()) {
+      alert("请填写奖项名称");
+      return;
+    }
+
+    await contentApi.createMemberAward({
+      ...awardForm,
+      name: awardForm.name.trim(),
+      sortNumber: Number(awardForm.sortNumber || 0),
+      status: Number(awardForm.status || 0),
+    });
+    setAwardForm({ name: "", sortNumber: 0, status: 0 });
+    await fetchMemberAwards();
+  };
+
+  const handleUpdateAward = async (
+    item: { id: number; name: string; sortNumber: number; status: number },
+    patch: Partial<{ name: string; sortNumber: number; status: number }>,
+  ) => {
+    if (!patch.name?.trim()) {
+      alert("请填写奖项名称");
+      return;
+    }
+
+    await contentApi.updateMemberAward(item.id, {
+      ...patch,
+      name: patch.name.trim(),
+      sortNumber: Number(patch.sortNumber || 0),
+      status: Number(patch.status || 0),
+    });
+    await fetchMemberAwards();
+  };
+
+  const handleDeleteAward = async (item: { id: number; name: string }) => {
+    if (!window.confirm(`确定删除奖项「${item.name}」吗？`)) return;
+    await contentApi.deleteMemberAward(item.id);
+    await fetchMemberAwards();
   };
 
   const handleDelete = async (item: BusinessContentItem) => {
@@ -966,10 +1085,12 @@ export default function BusinessCategoryPage({
   const renderExtraField = (field: BusinessExtraField) => {
     const value = formState[field.key];
     const dynamicOptions =
-      field.key === "postId"
+      field.key === "postId" || field.key === "postIds"
         ? postOptions
-        : field.key === "deptId"
+        : field.key === "deptId" || field.key === "deptIds"
           ? departmentOptions
+          : field.key === "awardIds"
+            ? awardOptions
           : field.key === "categoryId"
             ? contentCategories.map((item) => ({
                 label: item.name,
@@ -989,6 +1110,36 @@ export default function BusinessCategoryPage({
             setFormState((prev) => ({ ...prev, [field.key]: nextValue }))
           }
         />
+      );
+    }
+
+    if (field.type === "multiselect") {
+      const selectedValues = Array.isArray(value)
+        ? value.map((item) => String(item))
+        : value
+          ? [String(value)]
+          : [];
+
+      return (
+        <Select
+          key={field.key}
+          label={field.label}
+          selectedKeys={selectedValues}
+          selectionMode="multiple"
+          onSelectionChange={(keys) => {
+            const selectedKeys =
+              keys === "all" ? (dynamicOptions || []).map((item) => item.value) : Array.from(keys);
+
+            setFormState((prev) => ({
+              ...prev,
+              [field.key]: selectedKeys.map((item) => String(item)),
+            }));
+          }}
+        >
+          {(dynamicOptions || []).map((option) => (
+            <SelectItem key={option.value}>{option.label}</SelectItem>
+          ))}
+        </Select>
       );
     }
 
@@ -1113,6 +1264,11 @@ export default function BusinessCategoryPage({
                 分类管理
               </Button>
             ) : null}
+            {category === "member-style" ? (
+              <Button variant="flat" onPress={() => setAwardManagerOpen(true)}>
+                奖项管理
+              </Button>
+            ) : null}
             <Button
               className="bg-sky-600 text-white shadow-lg shadow-sky-100"
               color="primary"
@@ -1126,7 +1282,7 @@ export default function BusinessCategoryPage({
       </section>
 
       <Search
-        fields={searchFields}
+        fields={effectiveSearchFields}
         onReset={handleReset}
         onSearch={handleSearch}
       />
@@ -1588,6 +1744,148 @@ export default function BusinessCategoryPage({
           </ModalBody>
           <ModalFooter>
             <Button variant="flat" onPress={() => setCategoryManagerOpen(false)}>
+              关闭
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={awardManagerOpen}
+        scrollBehavior="inside"
+        size="4xl"
+        onOpenChange={setAwardManagerOpen}
+      >
+        <ModalContent>
+          <ModalHeader>成员风采奖项管理</ModalHeader>
+          <ModalBody className="gap-5">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className="mb-3 text-sm font-medium text-slate-700">
+                新增奖项
+              </div>
+              <div className="grid gap-3 md:grid-cols-[1fr_120px_140px_130px]">
+                <Input
+                  label="奖项名称"
+                  value={awardForm.name}
+                  onChange={(e) =>
+                    setAwardForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                />
+                <Input
+                  label="排序"
+                  type="number"
+                  value={String(awardForm.sortNumber ?? 0)}
+                  onChange={(e) =>
+                    setAwardForm((prev) => ({
+                      ...prev,
+                      sortNumber: Number(e.target.value || 0),
+                    }))
+                  }
+                />
+                <Select
+                  label="状态"
+                  selectedKeys={[String(awardForm.status ?? 0)]}
+                  onSelectionChange={(keys) => {
+                    const nextValue = Array.from(keys)[0];
+
+                    setAwardForm((prev) => ({
+                      ...prev,
+                      status: Number(nextValue ?? 0),
+                    }));
+                  }}
+                >
+                  <SelectItem key="0">启用</SelectItem>
+                  <SelectItem key="1">禁用</SelectItem>
+                </Select>
+                <Button className="self-end" color="primary" onPress={handleCreateAward}>
+                  新增奖项
+                </Button>
+              </div>
+            </div>
+            <div className="grid gap-3">
+              {awardRows.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[minmax(180px,1fr)_110px_130px_150px]"
+                >
+                  <Input
+                    label="名称"
+                    value={item.name}
+                    onChange={(e) =>
+                      setAwardRows((prev) =>
+                        prev.map((current) =>
+                          current.id === item.id
+                            ? { ...current, name: e.target.value }
+                            : current,
+                        ),
+                      )
+                    }
+                  />
+                  <Input
+                    label="排序"
+                    type="number"
+                    value={String(item.sortNumber ?? 0)}
+                    onChange={(e) =>
+                      setAwardRows((prev) =>
+                        prev.map((current) =>
+                          current.id === item.id
+                            ? {
+                                ...current,
+                                sortNumber: Number(e.target.value || 0),
+                              }
+                            : current,
+                        ),
+                      )
+                    }
+                  />
+                  <Select
+                    label="状态"
+                    selectedKeys={[String(item.status ?? 0)]}
+                    onSelectionChange={(keys) => {
+                      const nextValue = Array.from(keys)[0];
+
+                      setAwardRows((prev) =>
+                        prev.map((current) =>
+                          current.id === item.id
+                            ? { ...current, status: Number(nextValue ?? 0) }
+                            : current,
+                        ),
+                      );
+                    }}
+                  >
+                    <SelectItem key="0">启用</SelectItem>
+                    <SelectItem key="1">禁用</SelectItem>
+                  </Select>
+                  <div className="flex items-end justify-end gap-2">
+                    <Button
+                      size="sm"
+                      color="primary"
+                      className="min-w-16"
+                      onPress={() => handleUpdateAward(item, item)}
+                    >
+                      保存
+                    </Button>
+                    <Button
+                      size="sm"
+                      color="danger"
+                      variant="flat"
+                      className="min-w-16"
+                      onPress={() => handleDeleteAward(item)}
+                    >
+                      删除
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {awardRows.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-500">
+                  暂无奖项
+                </div>
+              ) : null}
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={() => setAwardManagerOpen(false)}>
               关闭
             </Button>
           </ModalFooter>

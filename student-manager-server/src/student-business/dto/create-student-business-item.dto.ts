@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayUnique,
+  IsArray,
   IsNumber,
   IsDateString,
   IsIn,
@@ -304,10 +306,31 @@ export class CreateStudentBusinessItemDto {
   @IsInt()
   postId?: number;
 
+  @ApiPropertyOptional({ description: '系统岗位ID列表' })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  postIds?: number[];
+
   @ApiPropertyOptional({ description: '系统部门ID' })
   @IsOptional()
   @IsInt()
   deptId?: number;
+
+  @ApiPropertyOptional({ description: '系统部门ID列表' })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  deptIds?: number[];
+
+  @ApiPropertyOptional({ description: '奖项ID列表' })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  awardIds?: number[];
 
   @ApiPropertyOptional({ description: '成员排序文案' })
   @IsOptional()

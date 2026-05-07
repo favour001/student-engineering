@@ -2,6 +2,10 @@ import { defineConfig } from '@tarojs/cli'
 import path from 'path'
 
 export default defineConfig(async (merge) => {
+  const isProduction = process.env.NODE_ENV === 'production'
+  const defaultApiOrigin = isProduction ? 'https://sdsosa.com' : 'http://127.0.0.1:8888'
+  const defaultApiPrefix = isProduction ? '/student-api' : '/api'
+
   const baseConfig = {
     projectName: 'student-manager-taro',
     date: '2026-04-27',
@@ -20,8 +24,8 @@ export default defineConfig(async (merge) => {
       enable: true
     },
     defineConstants: {
-      __API_ORIGIN__: JSON.stringify(process.env.TARO_APP_API_ORIGIN || 'http://127.0.0.1:8888'),
-      __API_PREFIX__: JSON.stringify(process.env.TARO_APP_API_PREFIX || '/api'),
+      __API_ORIGIN__: JSON.stringify(process.env.TARO_APP_API_ORIGIN || defaultApiOrigin),
+      __API_PREFIX__: JSON.stringify(process.env.TARO_APP_API_PREFIX || defaultApiPrefix),
       __ASSET_ORIGIN__: JSON.stringify(process.env.TARO_APP_ASSET_ORIGIN || 'https://sdsosa.com')
     },
     alias: {

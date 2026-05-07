@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MEMBER_BUSINESS_CATEGORIES } from '../student-business.domain-groups';
 import { CreateStudentBusinessItemDto } from '../dto/create-student-business-item.dto';
 import { QueryStudentBusinessItemDto } from '../dto/query-student-business-item.dto';
@@ -12,10 +12,16 @@ import { QueryStudentBusinessUserPickerDto } from '../dto/query-student-business
 import { UpdateStudentBusinessItemDto } from '../dto/update-student-business-item.dto';
 import { StudentBusinessDomainService } from './student-business-domain.service';
 import { LxCard } from '../entities/lx-card.entity';
+import { LxMemberAward } from '../entities/lx-member-award.entity';
 import { LxMemberStyle } from '../entities/lx-member-style.entity';
+import { LxMemberStyleAward } from '../entities/lx-member-style-award.entity';
+import { LxMemberStyleDepartment } from '../entities/lx-member-style-department.entity';
+import { LxMemberStylePost } from '../entities/lx-member-style-post.entity';
 import { LxRuhui } from '../entities/lx-ruhui.entity';
 import { LxWxuser } from '../entities/lx-wxuser.entity';
 import { LxXiehui } from '../entities/lx-xiehui.entity';
+import { SysDepartment } from '../../sys-department/entities/sys-department.entity';
+import { SysPost } from '../../sys-post/entities/sys-post.entity';
 
 type AssignCardType = 'vip' | 'welfare';
 
@@ -24,6 +30,18 @@ export class MemberBusinessService extends StudentBusinessDomainService {
   constructor(
     @InjectRepository(LxMemberStyle)
     private readonly memberStyleRepo: Repository<LxMemberStyle>,
+    @InjectRepository(LxMemberAward)
+    private readonly awardRepo: Repository<LxMemberAward>,
+    @InjectRepository(LxMemberStyleAward)
+    private readonly memberAwardRepo: Repository<LxMemberStyleAward>,
+    @InjectRepository(LxMemberStyleDepartment)
+    private readonly memberDepartmentRepo: Repository<LxMemberStyleDepartment>,
+    @InjectRepository(LxMemberStylePost)
+    private readonly memberPostRepo: Repository<LxMemberStylePost>,
+    @InjectRepository(SysDepartment)
+    private readonly departmentRepo: Repository<SysDepartment>,
+    @InjectRepository(SysPost)
+    private readonly postRepo: Repository<SysPost>,
     @InjectRepository(LxXiehui)
     private readonly xiehuiRepo: Repository<LxXiehui>,
     @InjectRepository(LxRuhui)
@@ -41,7 +59,9 @@ export class MemberBusinessService extends StudentBusinessDomainService {
 
     if (createDto.category === 'member-style') {
       const nextId = await this.getNextMemberStyleId();
-      return this.memberStyleRepo.save(
+      const initialPostIds = this.normalizeIds(createDto.postIds);
+      const initialDeptIds = this.normalizeIds(createDto.deptIds);
+      const entity = await this.memberStyleRepo.save(
         this.memberStyleRepo.create({
           id: nextId,
           legacyUserId: null,
@@ -52,8 +72,8 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           userName: createDto.title,
           displayName: createDto.displayName ?? createDto.subTitle ?? null,
           jobTitle: createDto.jobTitle ?? null,
-          postId: createDto.postId ?? null,
-          deptId: createDto.deptId ?? null,
+          postId: initialPostIds[0] ?? createDto.postId ?? null,
+          deptId: initialDeptIds[0] ?? createDto.deptId ?? null,
           memberRank: createDto.memberRank ?? null,
           joinedAt: createDto.publishedAt ? new Date(createDto.publishedAt) : null,
           mobile: createDto.mobile ?? null,
@@ -75,6 +95,8 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           updateTime: new Date(),
         }),
       );
+      await this.syncMemberStyleRelations(nextId, createDto);
+      return this.mapMemberStyle(entity, await this.getOrgMaps([entity]));
     }
 
     if (createDto.category === 'association-intro') {
@@ -117,10 +139,24 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         );
       }
       if (query.postId) {
-        qb.andWhere('member.postId = :postId', { postId: query.postId });
+        qb.andWhere(
+          '(member.postId = :postId OR EXISTS (SELECT 1 FROM lx_member_style_post memberPost WHERE memberPost.member_style_id = member.id AND memberPost.post_id = :postId))',
+          { postId: query.postId },
+        );
       }
       if (query.deptId) {
-        qb.andWhere('member.deptId = :deptId', { deptId: query.deptId });
+        qb.andWhere(
+          '(member.deptId = :deptId OR EXISTS (SELECT 1 FROM lx_member_style_department memberDepartment WHERE memberDepartment.member_style_id = member.id AND memberDepartment.department_id = :deptId))',
+          { deptId: query.deptId },
+        );
+      }
+      if (query.awardId) {
+        qb.innerJoin(
+          'lx_member_style_award',
+          'memberAward',
+          'memberAward.member_style_id = member.id AND memberAward.award_id = :awardId',
+          { awardId: query.awardId },
+        );
       }
       if (query.status !== undefined) {
         qb.andWhere('member.status = :status', { status: query.status });
@@ -135,8 +171,10 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         .take(currentLimit)
         .getManyAndCount();
 
+      const orgMaps = await this.getOrgMaps(data);
+
       return {
-        data: data.map((item) => this.mapMemberStyle(item)),
+        data: data.map((item) => this.mapMemberStyle(item, orgMaps)),
         meta: {
           total,
           page: currentPage,
@@ -240,7 +278,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         throw new NotFoundException(`成员 ID ${id} 不存在`);
       }
 
-      return this.mapMemberStyle(entity);
+      return this.mapMemberStyle(entity, await this.getOrgMaps([entity]));
     }
 
     if (category === 'association-intro' || category === 'joining-guide') {
@@ -286,8 +324,16 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           ? { displayName: updateDto.displayName ?? updateDto.subTitle ?? null }
           : {}),
         ...(updateDto.jobTitle !== undefined ? { jobTitle: updateDto.jobTitle } : {}),
-        ...(updateDto.postId !== undefined ? { postId: updateDto.postId || null } : {}),
-        ...(updateDto.deptId !== undefined ? { deptId: updateDto.deptId || null } : {}),
+        ...(updateDto.postIds !== undefined
+          ? { postId: this.normalizeIds(updateDto.postIds)[0] ?? null }
+          : updateDto.postId !== undefined
+            ? { postId: updateDto.postId || null }
+            : {}),
+        ...(updateDto.deptIds !== undefined
+          ? { deptId: this.normalizeIds(updateDto.deptIds)[0] ?? null }
+          : updateDto.deptId !== undefined
+            ? { deptId: updateDto.deptId || null }
+            : {}),
         ...(updateDto.memberRank !== undefined
           ? { memberRank: updateDto.memberRank }
           : {}),
@@ -341,7 +387,9 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         updateTime: new Date(),
       });
 
-      return this.memberStyleRepo.save(entity);
+      const saved = await this.memberStyleRepo.save(entity);
+      await this.syncMemberStyleRelations(id, updateDto);
+      return this.mapMemberStyle(saved, await this.getOrgMaps([saved]));
     }
 
     if (
@@ -384,6 +432,7 @@ export class MemberBusinessService extends StudentBusinessDomainService {
         throw new NotFoundException(`成员 ID ${id} 不存在`);
       }
 
+      await this.clearMemberStyleRelations(id);
       await this.memberStyleRepo.remove(entity);
       return { message: '删除成功', id };
     }
@@ -511,6 +560,221 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     return { message: '分配成功', count: entities.length };
   }
 
+  async listAwards() {
+    const rows = await this.awardRepo.find({
+      order: { sortNumber: 'ASC', id: 'ASC' },
+    });
+
+    return rows;
+  }
+
+  async createAward(body: Partial<LxMemberAward>) {
+    if (!body.name?.trim()) {
+      throw new BadRequestException('请填写奖项名称');
+    }
+
+    const latest = await this.awardRepo
+      .createQueryBuilder('award')
+      .orderBy('award.id', 'DESC')
+      .getOne();
+    const id = latest ? Number(latest.id) + 1 : 1;
+
+    return this.awardRepo.save(
+      this.awardRepo.create({
+        id,
+        name: body.name.trim(),
+        sortNumber: Number(body.sortNumber ?? 0),
+        status: Number(body.status ?? 0),
+        createTime: new Date(),
+        updateTime: new Date(),
+      }),
+    );
+  }
+
+  async updateAward(id: number, body: Partial<LxMemberAward>) {
+    const entity = await this.awardRepo.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`奖项 ID ${id} 不存在`);
+    }
+
+    if (body.name !== undefined) entity.name = body.name.trim();
+    if (body.sortNumber !== undefined) entity.sortNumber = Number(body.sortNumber);
+    if (body.status !== undefined) entity.status = Number(body.status);
+    entity.updateTime = new Date();
+
+    return this.awardRepo.save(entity);
+  }
+
+  async deleteAward(id: number) {
+    const entity = await this.awardRepo.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`奖项 ID ${id} 不存在`);
+    }
+
+    await this.memberAwardRepo.delete({ awardId: id });
+    await this.awardRepo.delete({ id });
+    return { message: '删除成功', id };
+  }
+
+  private normalizeIds(value: unknown) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        value
+          .map((item) => Number(item))
+          .filter((item) => Number.isFinite(item) && item > 0),
+      ),
+    );
+  }
+
+  private async syncMemberStyleRelations(
+    memberStyleId: number,
+    payload: Partial<CreateStudentBusinessItemDto | UpdateStudentBusinessItemDto>,
+  ) {
+    const postIds =
+      payload.postIds !== undefined
+        ? this.normalizeIds(payload.postIds)
+        : payload.postId
+          ? [Number(payload.postId)]
+          : undefined;
+    const departmentIds =
+      payload.deptIds !== undefined
+        ? this.normalizeIds(payload.deptIds)
+        : payload.deptId
+          ? [Number(payload.deptId)]
+          : undefined;
+    const awardIds =
+      payload.awardIds !== undefined ? this.normalizeIds(payload.awardIds) : undefined;
+
+    if (postIds !== undefined) {
+      await this.memberPostRepo.delete({ memberStyleId });
+      if (postIds.length) {
+        await this.memberPostRepo.save(
+          postIds.map((postId) =>
+            this.memberPostRepo.create({ memberStyleId, postId }),
+          ),
+        );
+      }
+    }
+
+    if (departmentIds !== undefined) {
+      await this.memberDepartmentRepo.delete({ memberStyleId });
+      if (departmentIds.length) {
+        await this.memberDepartmentRepo.save(
+          departmentIds.map((departmentId) =>
+            this.memberDepartmentRepo.create({ memberStyleId, departmentId }),
+          ),
+        );
+      }
+    }
+
+    if (awardIds !== undefined) {
+      await this.memberAwardRepo.delete({ memberStyleId });
+      if (awardIds.length) {
+        await this.memberAwardRepo.save(
+          awardIds.map((awardId) =>
+            this.memberAwardRepo.create({ memberStyleId, awardId }),
+          ),
+        );
+      }
+    }
+  }
+
+  private async clearMemberStyleRelations(memberStyleId: number) {
+    await Promise.all([
+      this.memberPostRepo.delete({ memberStyleId }),
+      this.memberDepartmentRepo.delete({ memberStyleId }),
+      this.memberAwardRepo.delete({ memberStyleId }),
+    ]);
+  }
+
+  private async getOrgMaps(rows: LxMemberStyle[]) {
+    const memberIds = rows.map((item) => Number(item.id)).filter(Boolean);
+    if (!memberIds.length) {
+      return {
+        postMap: new Map<number, SysPost>(),
+        deptMap: new Map<number, SysDepartment>(),
+        awardMap: new Map<number, LxMemberAward>(),
+        memberPosts: new Map<number, number[]>(),
+        memberDepartments: new Map<number, number[]>(),
+        memberAwards: new Map<number, number[]>(),
+      };
+    }
+
+    const [postRels, deptRels, awardRels] = await Promise.all([
+      this.queryMemberRelations('lx_member_style_post', 'post_id', memberIds),
+      this.queryMemberRelations('lx_member_style_department', 'department_id', memberIds),
+      this.queryMemberRelations('lx_member_style_award', 'award_id', memberIds),
+    ]);
+    const postIds = Array.from(
+      new Set([
+        ...postRels.map((item) => Number(item.valueId)),
+        ...rows.map((item) => Number(item.postId)),
+      ].filter(Boolean)),
+    );
+    const deptIds = Array.from(
+      new Set([
+        ...deptRels.map((item) => Number(item.valueId)),
+        ...rows.map((item) => Number(item.deptId)),
+      ].filter(Boolean)),
+    );
+    const awardIds = Array.from(
+      new Set(awardRels.map((item) => Number(item.valueId)).filter(Boolean)),
+    );
+    const [posts, departments, awards] = await Promise.all([
+      postIds.length ? this.postRepo.find({ where: { id: In(postIds) } }) : [],
+      deptIds.length ? this.departmentRepo.find({ where: { id: In(deptIds) } }) : [],
+      awardIds.length ? this.awardRepo.find({ where: { id: In(awardIds) } }) : [],
+    ]);
+
+    return {
+      postMap: new Map(posts.map((item) => [Number(item.id), item] as [number, SysPost])),
+      deptMap: new Map(
+        departments.map((item) => [Number(item.id), item] as [number, SysDepartment]),
+      ),
+      awardMap: new Map(
+        awards.map((item) => [Number(item.id), item] as [number, LxMemberAward]),
+      ),
+      memberPosts: this.groupRawRelationIds(postRels),
+      memberDepartments: this.groupRawRelationIds(deptRels),
+      memberAwards: this.groupRawRelationIds(awardRels),
+    };
+  }
+
+  private async queryMemberRelations(
+    tableName: string,
+    valueColumn: string,
+    memberIds: number[],
+  ): Promise<Array<{ memberStyleId: number; valueId: number }>> {
+    if (!memberIds.length) return [];
+    const placeholders = memberIds.map(() => '?').join(',');
+    const rows = await this.memberStyleRepo.manager.query(
+      `SELECT member_style_id, ${valueColumn} AS value_id FROM ${tableName} WHERE member_style_id IN (${placeholders})`,
+      memberIds,
+    );
+
+    return rows.map((row: Record<string, string | number>) => ({
+      memberStyleId: Number(row.member_style_id ?? row.memberStyleId),
+      valueId: Number(row.value_id ?? row.valueId),
+    }));
+  }
+
+  private groupRawRelationIds(rows: Array<{ memberStyleId: number; valueId: number }>) {
+    const result = new Map<number, number[]>();
+    rows.forEach((row) => {
+      const ownerId = Number(row.memberStyleId);
+      const valueId = Number(row.valueId);
+      if (!ownerId || !valueId) return;
+      const list = result.get(ownerId) || [];
+      list.push(valueId);
+      result.set(ownerId, list);
+    });
+    return result;
+  }
+
   private mapWechatPayload(
     payload: Partial<CreateStudentBusinessItemDto | UpdateStudentBusinessItemDto>,
   ) {
@@ -609,7 +873,28 @@ export class MemberBusinessService extends StudentBusinessDomainService {
     };
   }
 
-  private mapMemberStyle(entity: LxMemberStyle) {
+  private mapMemberStyle(
+    entity: LxMemberStyle,
+    orgMaps: Awaited<ReturnType<MemberBusinessService['getOrgMaps']>>,
+  ) {
+    const memberId = Number(entity.id);
+    const postIds =
+      orgMaps.memberPosts.get(memberId) ||
+      (entity.postId ? [Number(entity.postId)] : []);
+    const deptIds =
+      orgMaps.memberDepartments.get(memberId) ||
+      (entity.deptId ? [Number(entity.deptId)] : []);
+    const awardIds = orgMaps.memberAwards.get(memberId) || [];
+    const posts = postIds
+      .map((id) => orgMaps.postMap.get(id))
+      .filter(Boolean) as SysPost[];
+    const departments = deptIds
+      .map((id) => orgMaps.deptMap.get(id))
+      .filter(Boolean) as SysDepartment[];
+    const awards = awardIds
+      .map((id) => orgMaps.awardMap.get(id))
+      .filter(Boolean) as LxMemberAward[];
+
     return {
       id: entity.id,
       category: 'member-style',
@@ -629,8 +914,17 @@ export class MemberBusinessService extends StudentBusinessDomainService {
           : null,
       displayName: entity.displayName ?? null,
       jobTitle: entity.jobTitle ?? null,
-      postId: entity.postId ?? null,
-      deptId: entity.deptId ?? null,
+      postId: postIds[0] ?? entity.postId ?? null,
+      postIds,
+      postNames: posts.map((item) => item.name),
+      posts: posts.map((item) => ({ id: item.id, name: item.name })),
+      deptId: deptIds[0] ?? entity.deptId ?? null,
+      deptIds,
+      departmentNames: departments.map((item) => item.name),
+      departments: departments.map((item) => ({ id: item.id, name: item.name })),
+      awardIds,
+      awardNames: awards.map((item) => item.name),
+      awards: awards.map((item) => ({ id: item.id, name: item.name })),
       memberRank: entity.memberRank ?? null,
       email: entity.email ?? null,
       gender: entity.gender ?? null,

@@ -180,24 +180,25 @@
 }
 
 .member-area-inner {
-  padding: 10px 10px 20px;
+  padding: 12px 10px 20px;
   box-sizing: border-box;
 }
 
 .member-item {
   display: flex;
-  padding: 12px;
+  align-items: flex-start;
+  padding: 12px 10px;
   margin-bottom: 10px;
   background: #fff;
   border: 1px solid #e7ecf0;
   border-radius: 8px;
-  box-shadow: 0 2px 7px rgba(31, 45, 61, 0.05);
+  box-shadow: 0 4px 12px rgba(31, 45, 61, 0.06);
 }
 
 .member-avatar {
-  flex: 0 0 82px;
-  width: 82px;
-  height: 96px;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 92px;
   border-radius: 7px;
   background: #e8edf1;
 }
@@ -205,19 +206,20 @@
 .member-info {
   flex: 1;
   min-width: 0;
-  padding-left: 12px;
+  padding-left: 11px;
 }
 
 .member-title {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 9px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 7px;
 }
 
 .member-name {
   flex: 0 0 auto;
-  max-width: 84px;
+  max-width: 100%;
   color: #1e2b37;
   font-size: 18px;
   font-weight: 800;
@@ -226,34 +228,47 @@
 
 .post-badge {
   display: inline-block;
-  max-width: 110px;
-  min-height: 22px;
-  padding: 0 8px;
-  background: #ed7d1d;
+  max-width: 138px;
+  min-height: 20px;
+  padding: 0 7px;
+  background: rgba(237, 125, 29, 0.12);
+  border: 1px solid rgba(237, 125, 29, 0.25);
   border-radius: 4px;
-  color: #fff;
+  color: #bf5f10;
   font-size: 12px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.post-badges {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
 }
 
 .member-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
 }
 
 .meta-chip {
   display: inline-block;
   max-width: 112px;
-  height: 22px;
+  height: 20px;
   padding: 0 8px;
   background: rgba(155, 193, 44, 0.14);
   border-radius: 4px;
   color: #5a7e12;
   font-size: 12px;
-  line-height: 22px;
+  line-height: 20px;
 }
 
 .meta-chip.muted {
@@ -261,18 +276,30 @@
   color: #42627a;
 }
 
-.member-school,
-.member-role {
-  display: block;
-  color: #637281;
-  font-size: 13px;
-  line-height: 20px;
+.award-list,
+.detail-awards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
 }
 
-.member-school {
-  margin-bottom: 2px;
-  color: #344554;
-  font-weight: 600;
+.award-chip,
+.detail-award-chip {
+  display: inline-block;
+  max-width: 142px;
+  min-height: 20px;
+  padding: 0 7px;
+  background: #fff;
+  border: 1px solid #e4e9ee;
+  border-radius: 3px;
+  color: #637281;
+  font-size: 12px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .empty {

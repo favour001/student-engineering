@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import Taro, { useReachBottom } from '@tarojs/taro'
 import { Image, Swiper, SwiperItem, Text, View } from '@tarojs/components'
 import GraphicItem from '@/components/GraphicItem'
+import QueuedImage from '@/components/QueuedImage'
 import Tabs from '@/components/Tabs'
-import { commonRequest } from '@/utils/request'
+import { buildOptimizedImageUrl, commonRequest } from '@/utils/request'
 import { normalizePageResult } from '@/utils/pagination'
 import { isUrl } from '@/utils/util'
 import memberStyle from '@/static/images/jingangDistrict/memberstyle.png'
@@ -44,42 +45,60 @@ export default function Home() {
   const [articles, setArticles] = useState<any[]>([])
   const [articlePage, setArticlePage] = useState(1)
   const [articleHasMore, setArticleHasMore] = useState(true)
+  const [homeLoading, setHomeLoading] = useState(true)
+  const [articleInitialLoading, setArticleInitialLoading] = useState(true)
   const articleLoading = useRef(false)
+  const articleRequestSeq = useRef(0)
+  const activeArticleTab = useRef(tab)
   const pageSize = 10
 
   useEffect(() => {
     async function load() {
-      const bannerList = (await commonRequest<any[]>('GET', 'app/banner/list')) || []
-      const quickAccessList = (await commonRequest<any[]>('GET', 'app/quick-access/list')) || []
-      const noticeList = (await commonRequest<any[]>('GET', 'app/notice/list', {})) || []
-      setBanners(Array.isArray(bannerList) ? bannerList : [])
-      if (Array.isArray(quickAccessList) && quickAccessList.length) {
-        setGrids(quickAccessList.map((item) => ({
-          title: item.title,
-          img: item.coverImage || item.avaterUrl || fallbackIconMap[item.title] || memberShipApplication,
-          path: normalizeGridPath(item.path || item.pointUrl, item.title)
-        })))
+      try {
+        const bannerList = (await commonRequest<any[]>('GET', 'app/banner/list')) || []
+        const quickAccessList = (await commonRequest<any[]>('GET', 'app/quick-access/list')) || []
+        const noticeList = (await commonRequest<any[]>('GET', 'app/notice/list', {})) || []
+        setBanners(Array.isArray(bannerList) ? bannerList : [])
+        if (Array.isArray(quickAccessList) && quickAccessList.length) {
+          setGrids(quickAccessList.map((item) => ({
+            title: item.title,
+            img: optimizeHomeImage(item.coverImage || item.avaterUrl || fallbackIconMap[item.title] || memberShipApplication, 160),
+            path: normalizeGridPath(item.path || item.pointUrl, item.title)
+          })))
+        }
+        setNotice(Array.isArray(noticeList) ? noticeList[0] : undefined)
+      } finally {
+        setHomeLoading(false)
       }
-      setNotice(Array.isArray(noticeList) ? noticeList[0] : undefined)
     }
     load()
   }, [])
 
   const loadArticles = async (nextPage = 1, append = false, nextTab = tab) => {
-    if (articleLoading.current) return
+    if (append && articleLoading.current) return
+    const requestSeq = articleRequestSeq.current + 1
+    articleRequestSeq.current = requestSeq
     articleLoading.current = true
+    if (!append && !articles.length) setArticleInitialLoading(true)
     try {
       const res = await commonRequest<any>('GET', 'app/article/list', {}, { pageNum: nextPage, pageSize, type: nextTab })
       const page = normalizePageResult<any>(res, nextPage, pageSize)
+      if (requestSeq !== articleRequestSeq.current || nextTab !== activeArticleTab.current) {
+        return
+      }
       setArticles((prev) => append ? prev.concat(page.list) : page.list)
       setArticlePage(nextPage)
       setArticleHasMore(page.hasMore)
     } finally {
-      articleLoading.current = false
+      if (requestSeq === articleRequestSeq.current) {
+        if (!append) setArticleInitialLoading(false)
+        articleLoading.current = false
+      }
     }
   }
 
   useEffect(() => {
+    activeArticleTab.current = tab
     loadArticles(1, false, tab)
   }, [tab])
 
@@ -110,18 +129,24 @@ export default function Home() {
 
   return (
     <View className="home content">
-      <Swiper className="home-swiper" indicatorDots autoplay circular>
-        {banners.map((item) => (
-          <SwiperItem key={item.id}>
-            <Image
-              className="home-banner"
-              src={item.bannerUrl || item.avaterUrl}
-              mode="aspectFill"
-              onClick={() => item.id && Taro.navigateTo({ url: `/pages/oAArticle/index?id=${item.id}` })}
-            />
-          </SwiperItem>
-        ))}
-      </Swiper>
+      {homeLoading && !banners.length ? (
+        <View className="home-swiper home-skeleton" />
+      ) : (
+        <Swiper className="home-swiper" indicatorDots autoplay circular>
+          {banners.map((item) => (
+            <SwiperItem key={item.id}>
+              <QueuedImage
+                className="home-banner"
+                src={optimizeHomeImage(item.bannerUrl || item.avaterUrl, 750)}
+                mode="aspectFill"
+                priority={1}
+                lazyLoad={false}
+                onClick={() => item.id && Taro.navigateTo({ url: `/pages/oAArticle/index?id=${item.id}` })}
+              />
+            </SwiperItem>
+          ))}
+        </Swiper>
+      )}
 
       {notice ? (
         <View className="notice" onClick={() => Taro.navigateTo({ url: '/pages/notice/index' })}>
@@ -134,7 +159,7 @@ export default function Home() {
         {grids.map((item) => (
           <View className="grid-item" key={item.title} onClick={() => handleGridClick(item.path)}>
             <View className="grid-icon-wrap">
-              <Image className="grid-icon" src={item.img} mode="aspectFit" />
+              <QueuedImage className="grid-icon" src={item.img} mode="aspectFit" priority={2} />
             </View>
             <Text className="grid-title">{item.title}</Text>
           </View>
@@ -148,20 +173,37 @@ export default function Home() {
           { label: '海外动态', value: 2 }
         ]}
         onChange={(value) => {
+          const nextTab = Number(value)
+          if (nextTab === tab) return
+          activeArticleTab.current = nextTab
           setArticles([])
           setArticlePage(1)
           setArticleHasMore(true)
-          setTab(Number(value))
+          setTab(nextTab)
         }}
       />
 
       <View className="common-box-2">
-        {articles.length ? (
+        {articleInitialLoading && !articles.length ? (
+          <View>
+            {[1, 2, 3].map((item) => (
+              <View className="article-skeleton" key={item}>
+                <View className="article-skeleton-cover home-skeleton" />
+                <View className="article-skeleton-main">
+                  <View className="article-skeleton-line home-skeleton" />
+                  <View className="article-skeleton-line short home-skeleton" />
+                  <View className="article-skeleton-meta home-skeleton" />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : articles.length ? (
           articles.map((item) => (
             <GraphicItem
               key={item.id}
               title={item.title}
-              image={item.avaterUrl}
+              image={optimizeHomeImage(item.avaterUrl, 320)}
+              imagePriority={3}
               meta={item.createTime}
               onClick={() => openArticle(item)}
             />
@@ -172,6 +214,18 @@ export default function Home() {
       </View>
     </View>
   )
+}
+
+function optimizeHomeImage(url?: string, width = 480) {
+  if (!url) return ''
+  return buildOptimizedImageUrl(url, width, resolveHomeImageQuality(width))
+}
+
+function resolveHomeImageQuality(width: number) {
+  if (width <= 160) return 75
+  if (width <= 320) return 76
+  if (width >= 1080) return 82
+  return 78
 }
 
 function normalizeGridPath(path?: string, title?: string) {

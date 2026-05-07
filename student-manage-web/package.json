@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "clean": "node -e \"require('node:fs').rmSync('.next',{recursive:true,force:true,maxRetries:5,retryDelay:500})\"",
+    "prebuild": "npm run clean",
     "build": "next build",
     "start": "next start",
     "lint": "eslint --fix"

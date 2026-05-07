@@ -12,6 +12,18 @@ const getBackendUrl = (): string => {
 const getBackendApiUrl = (): string => {
   const backendUrl = getBackendUrl();
 
+  try {
+    const parsed = new URL(backendUrl);
+
+    if (parsed.pathname && parsed.pathname !== "/") {
+      return backendUrl;
+    }
+  } catch {
+    if (backendUrl.startsWith("/")) {
+      return backendUrl;
+    }
+  }
+
   return backendUrl.endsWith("/api") ? backendUrl : `${backendUrl}/api`;
 };
 

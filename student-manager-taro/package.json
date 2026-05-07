@@ -4,10 +4,14 @@
   "private": true,
   "description": "Student manager mobile app migrated from uni-app Vue to Taro React.",
   "scripts": {
+    "clean": "node scripts/clean-dist.cjs dist",
+    "prebuild:h5": "npm run clean",
     "build:h5": "taro build --type h5",
+    "prebuild:weapp": "npm run clean",
     "build:weapp": "set NODE_ENV=production&& taro build --type weapp",
     "dev:h5": "taro build --type h5 --watch --port 10086",
     "dev:weapp": "taro build --type weapp --watch",
+    "prepreview:weapp": "npm run clean",
     "preview:weapp": "set NODE_ENV=production&& taro build --type weapp --watch",
     "type-check": "tsc --noEmit"
   },

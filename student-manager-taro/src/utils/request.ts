@@ -305,6 +305,27 @@ export function buildAssetUrl(url = '') {
   return `${assetOrigin}${url}`
 }
 
+export function buildOptimizedImageUrl(url = '', width = 480, quality = 78) {
+  const normalizedUrl = buildAssetUrl(url)
+  if (!normalizedUrl || !/^https?:\/\//i.test(normalizedUrl)) {
+    return normalizedUrl
+  }
+
+  try {
+    const parsed = new URL(normalizedUrl)
+    if (
+      parsed.pathname.startsWith('/image/') &&
+      !parsed.pathname.startsWith('/image/thumbnails/')
+    ) {
+      const sourcePath = parsed.pathname.replace(/^\/image\/+/, '')
+      return `${parsed.origin}/image/thumbnails/w${width}-q${quality}/${sourcePath}${parsed.search}`
+    }
+    return normalizedUrl
+  } catch {
+    return normalizedUrl
+  }
+}
+
 function normalizeAssetFields<T>(data: T): T {
   if (Array.isArray(data)) {
     return data.map((item) => normalizeAssetFields(item)) as T

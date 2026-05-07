@@ -17,6 +17,8 @@ export default function MemberStyle() {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const loading = useRef(false)
+  const requestSeq = useRef(0)
+  const activeFilter = useRef({ keyword, deptId: activeDeptId })
   const pageSize = 10
 
   const loadMembers = async (
@@ -25,7 +27,9 @@ export default function MemberStyle() {
     nextPage = 1,
     append = false
   ) => {
-    if (loading.current) return
+    if (append && loading.current) return
+    const currentSeq = requestSeq.current + 1
+    requestSeq.current = currentSeq
     loading.current = true
     setIsLoading(true)
     try {
@@ -36,13 +40,20 @@ export default function MemberStyle() {
         pageSize
       })
       const page = normalizePageResult<any>(data, nextPage, pageSize)
+      if (
+        currentSeq !== requestSeq.current ||
+        nextKeyword !== activeFilter.current.keyword ||
+        `${nextDeptId}` !== `${activeFilter.current.deptId}`
+      ) return
       setList((prev) => append ? prev.concat(page.list) : page.list)
       setPageNum(nextPage)
       setTotal(page.total)
       setHasMore(page.hasMore)
     } finally {
-      loading.current = false
-      setIsLoading(false)
+      if (currentSeq === requestSeq.current) {
+        loading.current = false
+        setIsLoading(false)
+      }
     }
   }
 
@@ -51,6 +62,7 @@ export default function MemberStyle() {
       const depts = await commonRequest<any[]>('GET', 'app/member-style/departments', {})
       const normalizedDepts = normalizeDeptTabs(Array.isArray(depts) ? depts : [])
       setDeptList(normalizedDepts)
+      activeFilter.current = { keyword: '', deptId: ALL_DEPT_ID }
       setActiveDeptId(ALL_DEPT_ID)
       loadMembers('', ALL_DEPT_ID)
     }
@@ -67,12 +79,15 @@ export default function MemberStyle() {
   }
 
   const searchMembers = () => {
+    activeFilter.current = { keyword, deptId: activeDeptId }
     setPageNum(1)
     setHasMore(true)
     loadMembers(keyword, activeDeptId)
   }
 
   const switchDept = (deptId: number | string) => {
+    if (`${deptId}` === `${activeDeptId}`) return
+    activeFilter.current = { keyword, deptId }
     setActiveDeptId(deptId)
     setPageNum(1)
     setHasMore(true)
@@ -81,6 +96,7 @@ export default function MemberStyle() {
 
   const activeDept = deptList.find((item) => `${item.id}` === `${activeDeptId}`)
   const activeDeptName = activeDept?.deptName || activeDept?.name || '全部成员'
+  const isAllDept = `${activeDeptId}` === ALL_DEPT_ID
 
   return (
     <View className="member-style">
@@ -106,6 +122,7 @@ export default function MemberStyle() {
                 className="clear-key"
                 onClick={() => {
                   setKeyword('')
+                  activeFilter.current = { keyword: '', deptId: activeDeptId }
                   loadMembers('', activeDeptId)
                 }}
               >
@@ -143,6 +160,13 @@ export default function MemberStyle() {
         >
           <View className="member-area-inner">
             {list.length ? list.map((item) => (
+              (() => {
+                const postNames = getNames(item.posts, 'postName', 'name')
+                const awardNames = getNames(item.awards, 'awardName', 'name')
+                const deptName = item.deptName || ''
+                const showDeptName = Boolean(deptName && (isAllDept || deptName !== activeDeptName))
+
+                return (
               <View
                 className="member-item"
                 key={item.id}
@@ -152,18 +176,31 @@ export default function MemberStyle() {
                 <View className="member-info">
                   <View className="member-title">
                     <Text className="member-name">{item.displayName || item.name}</Text>
-                    {item.postName ? <Text className="post-badge">{item.postName}</Text> : null}
+                    {postNames.length ? (
+                      <View className="post-badges">
+                        {postNames.map((name) => (
+                          <Text className="post-badge" key={name}>{name}</Text>
+                        ))}
+                      </View>
+                    ) : item.postName ? <Text className="post-badge">{item.postName}</Text> : null}
                   </View>
                   <View className="member-meta">
                     {item.studyCountry || item.studyArea ? (
                       <Text className="meta-chip">{item.studyCountry || item.studyArea}</Text>
                     ) : null}
-                    {item.deptName ? <Text className="meta-chip muted">{item.deptName}</Text> : null}
+                    {showDeptName ? <Text className="meta-chip muted">{deptName}</Text> : null}
                   </View>
-                  {item.studySchool ? <Text className="member-school">{item.studySchool}</Text> : null}
-                  {item.jobTitle ? <Text className="member-role">{item.jobTitle}</Text> : null}
+                  {awardNames.length ? (
+                    <View className="award-list">
+                      {awardNames.slice(0, 3).map((name) => (
+                        <Text className="award-chip" key={name}>{name}</Text>
+                      ))}
+                    </View>
+                  ) : null}
                 </View>
               </View>
+                )
+              })()
             )) : (
               <View className="empty">
                 <Text>{isLoading ? '数据加载中...' : '暂无数据'}</Text>
@@ -184,4 +221,13 @@ function normalizeDeptTabs(depts: any[]) {
     return `${item.id}` !== '100' && name !== '全部'
   })
   return [{ id: ALL_DEPT_ID, name: '全部', deptName: '全部' }].concat(withoutLegacyAll)
+}
+
+function getNames(rows: any[] = [], ...keys: string[]) {
+  return Array.from(new Set(
+    rows
+      .map((item) => keys.map((key) => item?.[key]).find(Boolean))
+      .filter(Boolean)
+      .map((item) => `${item}`)
+  ))
 }

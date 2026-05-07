@@ -22,6 +22,9 @@ export default function MemberStyleDetail() {
   const heroImage = user.backgroundUrl && user.backgroundUrl !== 'null'
     ? user.backgroundUrl
     : user.avatarUrl || user.avaterUrl
+  const postNames = getNames(user.posts, 'postName', 'name')
+  const deptNames = getNames(user.departments, 'deptName', 'name')
+  const awardNames = getNames(user.awards, 'awardName', 'name')
 
   return (
     <View className="member-detail-page">
@@ -36,9 +39,13 @@ export default function MemberStyleDetail() {
           <View className="profile-info">
             <Text className="member-detail-name">{user.displayName || user.name || '成员'}</Text>
             <View className="detail-tags">
-              {user.postName ? <Text className="detail-post-badge">{user.postName}</Text> : null}
+              {postNames.length ? postNames.map((name) => (
+                <Text className="detail-post-badge" key={name}>{name}</Text>
+              )) : user.postName ? <Text className="detail-post-badge">{user.postName}</Text> : null}
               {user.studyCountry ? <Text className="country-badge">{user.studyCountry}</Text> : null}
-              {user.deptName ? <Text className="dept-badge">{user.deptName}</Text> : null}
+              {deptNames.length ? deptNames.map((name) => (
+                <Text className="dept-badge" key={name}>{name}</Text>
+              )) : user.deptName ? <Text className="dept-badge">{user.deptName}</Text> : null}
             </View>
             {user.studySchool ? <Text className="profile-school">{user.studySchool}</Text> : null}
           </View>
@@ -102,8 +109,31 @@ export default function MemberStyleDetail() {
               </View>
             </View>
           ) : null}
+
+          {awardNames.length ? (
+            <View className="detail-block">
+              <View className="block-heading">
+                <Text className="block-kicker">Awards</Text>
+                <Text className="intro-title">奖项</Text>
+              </View>
+              <View className="detail-awards">
+                {awardNames.map((name) => (
+                  <Text className="detail-award-chip" key={name}>{name}</Text>
+                ))}
+              </View>
+            </View>
+          ) : null}
         </View>
       </View>
     </View>
   )
+}
+
+function getNames(rows: any[] = [], ...keys: string[]) {
+  return Array.from(new Set(
+    rows
+      .map((item) => keys.map((key) => item?.[key]).find(Boolean))
+      .filter(Boolean)
+      .map((item) => `${item}`)
+  ))
 }

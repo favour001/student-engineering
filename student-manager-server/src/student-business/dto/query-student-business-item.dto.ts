@@ -58,4 +58,10 @@ export class QueryStudentBusinessItemDto {
   @Type(() => Number)
   @IsInt()
   deptId?: number;
+
+  @ApiPropertyOptional({ description: '奖项ID' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  awardId?: number;
 }

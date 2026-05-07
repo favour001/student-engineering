@@ -54,7 +54,11 @@ export interface BusinessContentItem {
   displayName?: string | null;
   jobTitle?: string | null;
   postId?: number | string | null;
+  postIds?: Array<number | string>;
   deptId?: number | string | null;
+  deptIds?: Array<number | string>;
+  awardIds?: Array<number | string>;
+  awards?: Array<{ id: number; name: string }>;
   memberRank?: string | null;
   backgroundImage?: string | null;
   honorRemark?: string | null;
@@ -91,6 +95,16 @@ export interface BusinessContentQueryParams {
   vipFlag?: string;
   auditStatus?: string;
   categoryId?: string;
+  postId?: string;
+  deptId?: string;
+  awardId?: string;
+}
+
+export interface MemberAwardOption {
+  id: number;
+  name: string;
+  sortNumber: number;
+  status: number;
 }
 
 export interface BusinessAssignableUser {
@@ -199,6 +213,29 @@ export const contentApi = {
       `/student-business/member/wechat-user/assignable-cards/${type}/${cardId}`,
       { userIds },
     );
+  },
+
+  async getMemberAwards() {
+    const response = await apiClient.get(
+      "/student-business/member/member-style/awards",
+    );
+
+    return response.data as MemberAwardOption[];
+  },
+
+  async createMemberAward(data: Partial<MemberAwardOption>) {
+    await apiClient.post("/student-business/member/member-style/awards", data);
+  },
+
+  async updateMemberAward(id: number, data: Partial<MemberAwardOption>) {
+    await apiClient.patch(
+      `/student-business/member/member-style/awards/${id}`,
+      data,
+    );
+  },
+
+  async deleteMemberAward(id: number) {
+    await apiClient.delete(`/student-business/member/member-style/awards/${id}`);
   },
 
   async getAssignableMerchantUsers(

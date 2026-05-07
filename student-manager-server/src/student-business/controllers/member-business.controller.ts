@@ -40,6 +40,30 @@ export class MemberBusinessController {
     return this.memberBusinessService.findAll(page, limit, query);
   }
 
+  @Get('member-style/awards')
+  @ApiOperation({ summary: '查询成员风采奖项列表' })
+  listAwards() {
+    return this.memberBusinessService.listAwards();
+  }
+
+  @Post('member-style/awards')
+  @ApiOperation({ summary: '新增成员风采奖项' })
+  createAward(@Body() body: any) {
+    return this.memberBusinessService.createAward(body);
+  }
+
+  @Patch('member-style/awards/:awardId')
+  @ApiOperation({ summary: '更新成员风采奖项' })
+  updateAward(@Param('awardId') awardId: string, @Body() body: any) {
+    return this.memberBusinessService.updateAward(+awardId, body);
+  }
+
+  @Delete('member-style/awards/:awardId')
+  @ApiOperation({ summary: '删除成员风采奖项' })
+  deleteAward(@Param('awardId') awardId: string) {
+    return this.memberBusinessService.deleteAward(+awardId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '查询会员组织业务详情' })
   findOne(@Param('id') id: string, @Query('category') category: string) {

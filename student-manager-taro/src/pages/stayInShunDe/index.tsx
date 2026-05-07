@@ -13,10 +13,14 @@ export default function StayInShunDe() {
   const [pageNum, setPageNum] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const loading = useRef(false)
+  const requestSeq = useRef(0)
+  const activeCategory = useRef<string | number>(categoryId)
   const pageSize = 10
 
   const load = async (nextPage = 1, append = false, nextCategoryId = categoryId) => {
-    if (loading.current) return
+    if (append && loading.current) return
+    const currentSeq = requestSeq.current + 1
+    requestSeq.current = currentSeq
     loading.current = true
     try {
       const data = await commonRequest<any>('GET', 'app/tweet/list', {}, {
@@ -25,11 +29,12 @@ export default function StayInShunDe() {
         pageSize
       })
       const page = normalizePageResult<any>(data, nextPage, pageSize)
+      if (currentSeq !== requestSeq.current || `${nextCategoryId}` !== `${activeCategory.current}`) return
       setList((prev) => append ? prev.concat(page.list) : page.list)
       setPageNum(nextPage)
       setHasMore(page.hasMore)
     } finally {
-      loading.current = false
+      if (currentSeq === requestSeq.current) loading.current = false
     }
   }
 
@@ -39,6 +44,7 @@ export default function StayInShunDe() {
       const nextCategories = Array.isArray(rows) ? rows : []
       setCategories(nextCategories)
       const firstCategoryId = nextCategories[0]?.id || ''
+      activeCategory.current = firstCategoryId
       setCategoryId(firstCategoryId)
       load(1, false, firstCategoryId)
     }
@@ -56,6 +62,8 @@ export default function StayInShunDe() {
         value={categoryId}
         tabs={categories.map((item) => ({ label: item.name, value: item.id }))}
         onChange={(value) => {
+          if (`${value}` === `${categoryId}`) return
+          activeCategory.current = value
           setList([])
           setPageNum(1)
           setHasMore(true)

@@ -22,6 +22,11 @@ export class AppMemberStyleController {
     return this.appMemberStyleService.listDepartments();
   }
 
+  @Get('awards')
+  listAwards() {
+    return this.appMemberStyleService.listAwards();
+  }
+
   @Get(':id')
   detail(@Param('id') id: string) {
     return this.appMemberStyleService.detail(Number(id));

@@ -27,6 +27,8 @@ export default function Welfare() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const loading = useRef(false)
+  const requestSeq = useRef(0)
+  const activeRequest = useRef({ type, categoryId: activeCategoryId })
   const pageSize = 10
 
   const load = async (
@@ -35,7 +37,9 @@ export default function Welfare() {
     nextType = type,
     nextCategoryId = activeCategoryId
   ) => {
-    if (loading.current) return
+    if (append && loading.current) return
+    const currentSeq = requestSeq.current + 1
+    requestSeq.current = currentSeq
     loading.current = true
     setLoadingMore(true)
     try {
@@ -46,12 +50,19 @@ export default function Welfare() {
         pageSize
       })
       const page = normalizePageResult<CardItem>(data, nextPage, pageSize)
+      if (
+        currentSeq !== requestSeq.current ||
+        nextType !== activeRequest.current.type ||
+        `${nextCategoryId}` !== `${activeRequest.current.categoryId}`
+      ) return
       setList((prev) => append ? prev.concat(page.list) : page.list)
       setPageNum(nextPage)
       setHasMore(page.hasMore)
     } finally {
-      loading.current = false
-      setLoadingMore(false)
+      if (currentSeq === requestSeq.current) {
+        loading.current = false
+        setLoadingMore(false)
+      }
     }
   }
 
@@ -59,6 +70,7 @@ export default function Welfare() {
     async function init() {
       const rows = await commonRequest<any[]>('GET', `app/card/categories/${type}`, {})
       setCategories([{ id: ALL_CATEGORY_ID, name: '全部' }].concat(Array.isArray(rows) ? rows : []))
+      activeRequest.current = { type, categoryId: ALL_CATEGORY_ID }
       setActiveCategoryId(ALL_CATEGORY_ID)
       setList([])
       setPageNum(1)
@@ -69,6 +81,8 @@ export default function Welfare() {
   }, [type])
 
   const switchCategory = (categoryId: string | number) => {
+    if (`${categoryId}` === `${activeCategoryId}`) return
+    activeRequest.current = { type, categoryId }
     setActiveCategoryId(categoryId)
     setList([])
     setPageNum(1)
@@ -97,11 +111,14 @@ export default function Welfare() {
         value={type}
         tabs={cardTypeTabs}
         onChange={(value) => {
+          const nextType = Number(value)
+          if (nextType === type) return
+          activeRequest.current = { type: nextType, categoryId: ALL_CATEGORY_ID }
           setList([])
           setPageNum(1)
           setHasMore(true)
           setActiveCategoryId(ALL_CATEGORY_ID)
-          setType(Number(value))
+          setType(nextType)
         }}
       />
       <View className="welfare-content">

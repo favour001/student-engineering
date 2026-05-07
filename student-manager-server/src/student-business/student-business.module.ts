@@ -23,7 +23,13 @@ import { LxWelfare } from './entities/lx-welfare.entity';
 import { LxWxuser } from './entities/lx-wxuser.entity';
 import { LxXiehui } from './entities/lx-xiehui.entity';
 import { LxMemberStyle } from './entities/lx-member-style.entity';
+import { LxMemberAward } from './entities/lx-member-award.entity';
+import { LxMemberStyleAward } from './entities/lx-member-style-award.entity';
+import { LxMemberStyleDepartment } from './entities/lx-member-style-department.entity';
+import { LxMemberStylePost } from './entities/lx-member-style-post.entity';
 import { BusinessContentCategory } from './entities/business-content-category.entity';
+import { SysDepartment } from '../sys-department/entities/sys-department.entity';
+import { SysPost } from '../sys-post/entities/sys-post.entity';
 import { ActivityBusinessService } from './services/activity-business.service';
 import { BenefitBusinessService } from './services/benefit-business.service';
 import { ContentBusinessService } from './services/content-business.service';
@@ -35,6 +41,12 @@ import { MemberBusinessService } from './services/member-business.service';
       LxActivity,
       LxSign,
       LxMemberStyle,
+      LxMemberAward,
+      LxMemberStyleAward,
+      LxMemberStyleDepartment,
+      LxMemberStylePost,
+      SysDepartment,
+      SysPost,
       LxUserManager,
       LxXiehui,
       LxRuhui,

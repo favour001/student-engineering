@@ -15,6 +15,10 @@ type Props = {
 
 export default function Tabs({ tabs, value, onChange, variant = 'default' }: Props) {
   const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.value === value))
+  const handleChange = (nextValue: string | number) => {
+    if (`${nextValue}` === `${value}`) return
+    onChange(nextValue)
+  }
 
   if (variant === 'scroll') {
     return (
@@ -32,7 +36,7 @@ export default function Tabs({ tabs, value, onChange, variant = 'default' }: Pro
               <View
                 key={tab.value}
                 className={`tabs-scroll-item ${active ? 'active' : ''}`}
-                onClick={() => onChange(tab.value)}
+                onClick={() => handleChange(tab.value)}
               >
                 <Text className="tabs-scroll-label">{tab.label}</Text>
                 {active && <View className="tabs-scroll-indicator" />}
@@ -57,7 +61,7 @@ export default function Tabs({ tabs, value, onChange, variant = 'default' }: Pro
         <Text
           key={tab.value}
           className={`tab-item ${value === tab.value ? 'active' : ''}`}
-          onClick={() => onChange(tab.value)}
+          onClick={() => handleChange(tab.value)}
         >
           {tab.label}
         </Text>

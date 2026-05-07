@@ -6,6 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true,maxRetries:5,retryDelay:500})\"",
+    "prebuild": "npm run clean",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -22,7 +24,8 @@
     "seed:clean": "ts-node script/seed.ts --clean --dry-run",
     "migration:run": "ts-node --transpile-only script/migration.ts run",
     "migration:revert": "ts-node --transpile-only script/migration.ts revert",
-    "migration:show": "ts-node --transpile-only script/migration.ts show"
+    "migration:show": "ts-node --transpile-only script/migration.ts show",
+    "image:thumbnails": "ts-node --transpile-only script/generate-thumbnails.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -47,6 +50,7 @@
     "redis": "^5.8.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "sharp": "0.33.5",
     "typeorm": "^0.3.26"
   },
   "devDependencies": {

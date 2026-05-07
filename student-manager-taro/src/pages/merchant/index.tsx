@@ -15,10 +15,14 @@ export default function Merchant() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const loading = useRef(false)
+  const requestSeq = useRef(0)
+  const activeCategory = useRef<string | number>(activeCategoryId)
   const pageSize = 10
 
   const load = async (nextPage = 1, append = false, nextCategoryId = activeCategoryId) => {
-    if (loading.current) return
+    if (append && loading.current) return
+    const currentSeq = requestSeq.current + 1
+    requestSeq.current = currentSeq
     loading.current = true
     setLoadingMore(true)
     try {
@@ -28,12 +32,15 @@ export default function Merchant() {
         pageSize
       })
       const page = normalizePageResult<any>(data, nextPage, pageSize)
+      if (currentSeq !== requestSeq.current || `${nextCategoryId}` !== `${activeCategory.current}`) return
       setList((prev) => append ? prev.concat(page.list) : page.list)
       setPageNum(nextPage)
       setHasMore(page.hasMore)
     } finally {
-      loading.current = false
-      setLoadingMore(false)
+      if (currentSeq === requestSeq.current) {
+        loading.current = false
+        setLoadingMore(false)
+      }
     }
   }
 
@@ -41,12 +48,15 @@ export default function Merchant() {
     async function init() {
       const rows = await commonRequest<any[]>('GET', 'app/merchant/categories', {})
       setCategories([{ id: ALL_CATEGORY_ID, name: '全部' }].concat(Array.isArray(rows) ? rows : []))
+      activeCategory.current = ALL_CATEGORY_ID
       load(1, false, ALL_CATEGORY_ID)
     }
     init()
   }, [])
 
   const switchCategory = (categoryId: string | number) => {
+    if (`${categoryId}` === `${activeCategoryId}`) return
+    activeCategory.current = categoryId
     setActiveCategoryId(categoryId)
     setList([])
     setPageNum(1)

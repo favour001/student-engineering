@@ -27,6 +27,14 @@ const DEFAULT_STORAGE_REGION = 'image';
 const DEFAULT_BUCKET = 'image';
 const DEFAULT_APPLICATION = 'nest-demo';
 const DEFAULT_SFTP_TIMEOUT = 30000;
+const IMAGE_THUMBNAIL_DIRNAME = 'thumbnails';
+const SUPPORTED_OPTIMIZE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const IMAGE_THUMBNAIL_VARIANTS = [
+  { width: 160, quality: 75 },
+  { width: 320, quality: 76 },
+  { width: 750, quality: 78 },
+  { width: 1080, quality: 82 },
+];
 
 function trimTrailingSlash(value: string) {
   return value.replace(/[\\/]+$/, '');
@@ -291,6 +299,7 @@ export class FilesService {
       response.filePath,
       response.storagePath,
     );
+    await this.generateImageThumbnails(response.filePath, response.storagePath);
     const returnedResponse = syncedFilePath
       ? {
           ...response,
@@ -320,6 +329,55 @@ export class FilesService {
     );
 
     return returnedResponse;
+  }
+
+  private async generateImageThumbnails(absolutePath: string, storagePath: string) {
+    const extension = path.extname(absolutePath).toLowerCase();
+
+    if (!SUPPORTED_OPTIMIZE_EXTENSIONS.has(extension) || !fs.existsSync(absolutePath)) {
+      return;
+    }
+
+    const sharp = this.loadSharp();
+    if (!sharp) {
+      return;
+    }
+
+    for (const variant of IMAGE_THUMBNAIL_VARIANTS) {
+      const thumbnailPath = this.buildOptimizedImageThumbnailPath(
+        storagePath,
+        variant.width,
+        variant.quality,
+      );
+
+      if (fs.existsSync(thumbnailPath) && fs.statSync(thumbnailPath).isFile()) {
+        await this.syncThumbnailToSftpIfEnabled(thumbnailPath, storagePath, variant);
+        continue;
+      }
+
+      fs.mkdirSync(path.dirname(thumbnailPath), { recursive: true });
+
+      try {
+        await this.writeOptimizedImage(sharp, absolutePath, thumbnailPath, extension, variant);
+        await this.syncThumbnailToSftpIfEnabled(thumbnailPath, storagePath, variant);
+      } catch {
+        // 上传主流程不能因为缩略图失败而失败，缺失规格后续访问时仍可按需生成。
+      }
+    }
+  }
+
+  private async syncThumbnailToSftpIfEnabled(
+    thumbnailPath: string,
+    storagePath: string,
+    variant: { width: number; quality: number },
+  ) {
+    const thumbnailStoragePath = [
+      IMAGE_THUMBNAIL_DIRNAME,
+      `w${variant.width}-q${variant.quality}`,
+      storagePath.replace(/\\/g, '/'),
+    ].join('/');
+
+    await this.syncFileToSftpIfEnabled(thumbnailPath, thumbnailStoragePath);
   }
 
   private async syncFileToSftpIfEnabled(localFilePath: string, storagePath: string) {
@@ -390,6 +448,57 @@ export class FilesService {
       normalizedPath,
       fileName: path.basename(absolutePath),
     };
+  }
+
+  private buildOptimizedImageThumbnailPath(
+    normalizedPath: string,
+    width: number,
+    quality: number,
+  ) {
+    const safePath = normalizedPath
+      .replace(/\\/g, '/')
+      .split('/')
+      .map((segment) => segment.replace(/[^a-zA-Z0-9._-]/g, '-'))
+      .join('/');
+
+    return path.resolve(
+      this.uploadRoot,
+      IMAGE_THUMBNAIL_DIRNAME,
+      `w${width}-q${quality}`,
+      safePath,
+    );
+  }
+
+  private async writeOptimizedImage(
+    sharp: any,
+    sourcePath: string,
+    targetPath: string,
+    extension: string,
+    variant: { width: number; quality: number },
+  ) {
+    let pipeline = sharp(sourcePath, { failOn: 'none' }).rotate().resize({
+      width: variant.width,
+      withoutEnlargement: true,
+    });
+
+    if (extension === '.png') {
+      pipeline = pipeline.png({ quality: variant.quality, compressionLevel: 9 });
+    } else if (extension === '.webp') {
+      pipeline = pipeline.webp({ quality: variant.quality });
+    } else {
+      pipeline = pipeline.jpeg({ quality: variant.quality, mozjpeg: true });
+    }
+
+    await pipeline.toFile(targetPath);
+  }
+
+  private loadSharp() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      return require('sharp');
+    } catch {
+      return null;
+    }
   }
 
   private normalizeFolderName(folder?: string) {
