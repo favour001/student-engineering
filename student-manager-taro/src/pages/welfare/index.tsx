@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
-import Tabs from '@/components/Tabs'
 import { CardItem } from '@/components/CardList'
 import { commonRequest } from '@/utils/request'
 import { refreshAuthFromStorage } from '@/utils/app'
@@ -9,17 +8,14 @@ import { normalizePageResult } from '@/utils/pagination'
 import {
   CARD_RECEIVE_STATUS,
   CARD_TYPE,
-  CARD_USE_STATUS,
-  cardReceiveStatusLabelMap,
-  cardTypeTabs,
-  cardUseStatusLabelMap
+  cardReceiveStatusLabelMap
 } from '@/constants/card'
 import './index.scss'
 
 const ALL_CATEGORY_ID = '__all__'
+const MEMBER_WELFARE_TYPE = Number(CARD_TYPE.VIP)
 
 export default function Welfare() {
-  const [type, setType] = useState(1)
   const [categories, setCategories] = useState<any[]>([])
   const [activeCategoryId, setActiveCategoryId] = useState<string | number>(ALL_CATEGORY_ID)
   const [list, setList] = useState<CardItem[]>([])
@@ -28,13 +24,13 @@ export default function Welfare() {
   const [loadingMore, setLoadingMore] = useState(false)
   const loading = useRef(false)
   const requestSeq = useRef(0)
-  const activeRequest = useRef({ type, categoryId: activeCategoryId })
+  const activeRequest = useRef({ type: MEMBER_WELFARE_TYPE, categoryId: activeCategoryId })
   const pageSize = 10
 
   const load = async (
     nextPage = 1,
     append = false,
-    nextType = type,
+    nextType = MEMBER_WELFARE_TYPE,
     nextCategoryId = activeCategoryId
   ) => {
     if (append && loading.current) return
@@ -68,26 +64,26 @@ export default function Welfare() {
 
   useEffect(() => {
     async function init() {
-      const rows = await commonRequest<any[]>('GET', `app/card/categories/${type}`, {})
+      const rows = await commonRequest<any[]>('GET', `app/card/categories/${MEMBER_WELFARE_TYPE}`, {})
       setCategories([{ id: ALL_CATEGORY_ID, name: '全部' }].concat(Array.isArray(rows) ? rows : []))
-      activeRequest.current = { type, categoryId: ALL_CATEGORY_ID }
+      activeRequest.current = { type: MEMBER_WELFARE_TYPE, categoryId: ALL_CATEGORY_ID }
       setActiveCategoryId(ALL_CATEGORY_ID)
       setList([])
       setPageNum(1)
       setHasMore(true)
-      load(1, false, type, ALL_CATEGORY_ID)
+      load(1, false, MEMBER_WELFARE_TYPE, ALL_CATEGORY_ID)
     }
     init()
-  }, [type])
+  }, [])
 
   const switchCategory = (categoryId: string | number) => {
     if (`${categoryId}` === `${activeCategoryId}`) return
-    activeRequest.current = { type, categoryId }
+    activeRequest.current = { type: MEMBER_WELFARE_TYPE, categoryId }
     setActiveCategoryId(categoryId)
     setList([])
     setPageNum(1)
     setHasMore(true)
-    load(1, false, type, categoryId)
+    load(1, false, MEMBER_WELFARE_TYPE, categoryId)
   }
 
   const loadNext = () => {
@@ -99,7 +95,7 @@ export default function Welfare() {
     const cardId = item.cardId || item.id
     if (!cardId) return
     const { userId } = refreshAuthFromStorage()
-    const params = [`cardId=${cardId}`, `type=${type}`]
+    const params = [`cardId=${cardId}`, `type=${MEMBER_WELFARE_TYPE}`]
     if (item.id) params.push(`id=${item.id}`)
     if (userId) params.push(`userId=${userId}`)
     Taro.navigateTo({ url: `/pages/welfare/detail?${params.join('&')}` })
@@ -107,20 +103,6 @@ export default function Welfare() {
 
   return (
     <View className="welfare-page">
-      <Tabs
-        value={type}
-        tabs={cardTypeTabs}
-        onChange={(value) => {
-          const nextType = Number(value)
-          if (nextType === type) return
-          activeRequest.current = { type: nextType, categoryId: ALL_CATEGORY_ID }
-          setList([])
-          setPageNum(1)
-          setHasMore(true)
-          setActiveCategoryId(ALL_CATEGORY_ID)
-          setType(nextType)
-        }}
-      />
       <View className="welfare-content">
         <ScrollView className="welfare-sidebar" scrollY enhanced showScrollbar={false}>
           {categories.map((item) => (
@@ -143,14 +125,10 @@ export default function Welfare() {
         >
           <View className="welfare-list-inner">
             {list.length ? list.map((item, index) => {
-              const currentType = String(type)
               const receiveStatus = String(item.status || '')
-              const useStatus = String(item.useStatus || '')
-              const title = currentType === CARD_TYPE.WELFARE ? item.fuliTitle : item.vipTitle
-              const image = currentType === CARD_TYPE.WELFARE ? item.fuliAvaterUrl : item.vipAvaterUrl
-              const desc = currentType === CARD_TYPE.WELFARE
-                ? (item.money ? `${parseFloat(`${item.money}`)}元` : '普惠福利')
-                : stripHtml(item.membershipDescribe)
+              const title = item.vipTitle
+              const image = item.vipAvaterUrl
+              const desc = stripHtml(item.membershipDescribe)
 
               return (
                 <View
@@ -161,12 +139,10 @@ export default function Welfare() {
                   {image ? <Image className="welfare-cover" src={image} mode="aspectFit" /> : null}
                   <View className="welfare-main">
                     <Text className="welfare-title">{title || '卡券'}</Text>
-                    <Text className={`welfare-summary ${currentType === CARD_TYPE.WELFARE ? 'money' : ''}`}>{desc}</Text>
+                    <Text className="welfare-summary">{desc}</Text>
                     <View className="welfare-status-row">
                       {receiveStatus === CARD_RECEIVE_STATUS.PENDING ? <Text className="welfare-status">{cardReceiveStatusLabelMap[receiveStatus]}</Text> : null}
-                      {receiveStatus === CARD_RECEIVE_STATUS.RECEIVED && currentType === CARD_TYPE.VIP ? <Text className="welfare-status done">{cardReceiveStatusLabelMap[receiveStatus]}</Text> : null}
-                      {receiveStatus === CARD_RECEIVE_STATUS.RECEIVED && currentType === CARD_TYPE.WELFARE && useStatus === CARD_USE_STATUS.PENDING ? <Text className="welfare-status">{cardUseStatusLabelMap[useStatus]}</Text> : null}
-                      {receiveStatus === CARD_RECEIVE_STATUS.RECEIVED && currentType === CARD_TYPE.WELFARE && useStatus === CARD_USE_STATUS.USED ? <Text className="welfare-status done">{cardUseStatusLabelMap[useStatus]}</Text> : null}
+                      {receiveStatus === CARD_RECEIVE_STATUS.RECEIVED ? <Text className="welfare-status done">{cardReceiveStatusLabelMap[receiveStatus]}</Text> : null}
                     </View>
                   </View>
                 </View>

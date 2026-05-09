@@ -37,7 +37,6 @@ export class AppContentService {
     const data = await this.bannerRepo.find({
       where: { releases: 0 },
       order: { createTime: 'DESC', id: 'DESC' },
-      take: 5,
     });
     return data.map((item) => ({
       id: item.id,
